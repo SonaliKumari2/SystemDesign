@@ -3,7 +3,7 @@
 3) CDN -> Redis Cache -> Database
 4) Pre Signed URLS (used by instagrams)
 5) Proxy vs Reverse Proxy vs load balancing
-5) JWT. is stateless. vs session.
+5) JWT. is stateless. vs session. JWT is a random string.
     JWT is structured by using three parts -> header , information , verifiable signature.
 6)Stateless vs Stateful mechanism.
 7)Authentication vs Authorization.
