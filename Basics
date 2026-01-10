@@ -5,6 +5,7 @@
 5) Proxy vs Reverse Proxy vs load balancing
 5) JWT. is stateless. vs session. JWT is a random string. JWT is Public key cryptography mechanism.
     JWT is structured by using three parts -> header , information , verifiable signature.
+    JWT can be used for authentication , authorizaton or information exchange.
 6)Stateless vs Stateful mechanism.
 7)Authentication vs Authorization.
 8)CORS
