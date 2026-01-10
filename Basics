@@ -2,7 +2,7 @@
 2) Data replication
 3) CDN -> Redis Cache -> Database
 4) Pre Signed URLS (used by instagrams)
-5) Proxy vs Reverse Proxy.
+5) Proxy vs Reverse Proxy vs load balancing
 5) JWT. is stateless. vs session.
 6)Stateless vs Stateful mechanism.
 7)Authentication vs Authorization.
