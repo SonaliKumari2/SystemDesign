@@ -1,1 +1,6 @@
-
+1) Data sharding
+2) Data replication
+3) CDN -> Redis Cache -> Database
+4) Pre Signed URLS (used by instagrams)
+5) Proxy vs Reverse Proxy.
+5) JWT.
