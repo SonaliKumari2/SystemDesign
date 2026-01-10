@@ -7,6 +7,7 @@
     JWT is structured by using three parts -> header , information , verifiable signature.
     JWT can be used for authentication , authorizaton or information exchange.
     JWT can be validated by using refresh token or by using expiry data . So , most of the times JWT is short lived.
+    Client will have JWT.
 6)Stateless vs Stateful mechanism.
 7)Authentication vs Authorization.
 8)CORS
