@@ -1,0 +1,60 @@
+🚀 URL Shortener — Final Interview Notes (Perfect to Speak)
+1. Problem Statement
+
+“A URL shortener converts long URLs into short, unique codes and redirects users to the original URL with very low latency.”
+
+2. Functional Requirements
+
+“Users should be able to shorten URLs, get redirects instantly, optionally set custom aliases, expiry times, and track basic click counts.”
+
+3. Non-Functional Requirements
+
+“The system must be highly available, low-latency, scalable, and guarantee unique short codes.”
+
+4. Core APIs
+
+“I’ll provide two main APIs:
+• POST /shorten to create short URLs
+• GET /{code} to redirect to the long URL.”
+
+5. High-Level Architecture
+
+“Requests flow through a Load Balancer to stateless App Servers, which use Redis Cache for fast lookups and a NoSQL Database for persistent storage.”
+
+(Speak as architecture) →
+Client → Load Balancer → App Servers → Redis → NoSQL DB
+
+6. Short Code Generation
+
+“I generate short codes by storing the URL, taking the auto-increment ID, and converting it into a Base62 string (a–z, A–Z, 0–9) for compact, unique keys.”
+
+7. Database Choice
+
+“I use a NoSQL key-value store like DynamoDB or Cassandra since our lookups are simple and read-heavy. Key is the short code, value is the long URL.”
+
+8. Caching (Critical Section)
+
+“Most traffic is redirects, so Redis caches shortCode → longURL to return results in microseconds and reduce database load.”
+
+9. Load Balancing
+
+“A load balancer evenly distributes requests across multiple app servers, ensuring both scalability and high availability.”
+
+10. Scalability
+
+“The system scales horizontally because app servers are stateless. The database can be sharded by short code range for large-scale traffic.”
+
+11. Collision Handling
+
+“Auto-increment ID + Base62 ensures uniqueness, so collisions naturally never happen.”
+
+12. Optional Enhancements
+
+“We can add link expiration, custom aliases, QR codes, analytics, and user dashboards as optional features.”
+
+⭐ FINAL 25-SECOND INTERVIEW SUMMARY (Say This When Asked “Explain URL Shortener”)
+
+“I’d design a URL shortener with stateless app servers behind a load balancer.
+When a user submits a URL, I store it in a NoSQL DB, take the auto-generated ID, and encode it using Base62 to get a short, unique code.
+Redirects are extremely read-heavy, so I cache shortCode-to-longURL mappings in Redis for microsecond responses.
+The system scales horizontally, avoids collisions, and supports optional features like custom aliases and expiration.”
