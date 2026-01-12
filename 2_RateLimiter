@@ -5,4 +5,9 @@ now , various algorithsm exist using which rate limiting can be done. -> token b
 
 1)Define the applications
 2)ASk the clarifying questions and on the basis of that decide the functional and non functional requirements.
-3) The high level architecture basically the implementation of it and where to place the rate limiter (to disuccs the important algorithms , it's pros and cons.)
+3)Basically explain the important concepts which will be used in this. like the algorithms and all.
+The high level architecture basically the implementation of it and where to place the rate limiter (to disuccs the important algorithms , it's pros and cons.) . talk about 
+the token bucket algorithm and fixed window counter algorithm , these two algorithms used by most of the companies. but , there exist other algorithsm too like leaky bucket algorithm,
+sliding window log algorithm , sliding window counter algorithm. 
+4)High level architecture. Talk about the design.
+5) How to make it scalable and how to handle thorttling issues ? how to optimze the performance.
