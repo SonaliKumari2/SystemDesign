@@ -1,1 +1,8 @@
+first of all talked about the rate limiter , like its functional and non functional requirements , after that , where rate limiter is used.
+ip addresses can be used for rate limiting.
+now , various algorithsm exist using which rate limiting can be done. -> token bucket algorithm , fixed window size. (tell the advantages and downsize of each process) -> it can be implemented by using sliding window.
 
+
+1)Define the applications
+2)ASk the clarifying questions and on the basis of that decide the functional and non functional requirements.
+3) The high level architecture basically the implementation of it and where to place the rate limiter (to disuccs the important algorithms , it's pros and cons.)
