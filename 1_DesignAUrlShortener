@@ -1,1 +1,251 @@
-https://medium.com/@techievinay01/system-design-interview-question-design-url-shortener-19a11a171c29
+🏆 SYSTEM DESIGN: URL SHORTENER (TINYURL / BITLY)
+
+FAANG-ready. College-placement optimized. Complete.
+
+⭐ 1) Requirements (Functional + Non-functional) — 1 minute
+✅ Functional Requirements:
+
+Given a long URL → generate a short URL.
+
+Given a short URL → redirect to original URL.
+
+Ensure short URL uniqueness.
+
+Support high read traffic (redirects).
+
+🎯 Non-functional Requirements:
+
+Low latency redirect (target: < 5 ms).
+
+High availability (service must always work).
+
+Scalable (billions of URLs).
+
+Clarifying Questions:
+
+Allowed characters? → Assume alphanumeric (62 chars).
+
+Same long URL submitted twice → new short URL? → Assume YES.
+
+Expiry needed? → Optional.
+
+⭐ 2) API Design — 30 seconds
+POST /shorten
+
+Body: { "longUrl": "https://abc.com/xyz" }
+Response: { "shortUrl": "https://tiny.url/Af91bX" }
+
+GET /{shortId}
+
+Redirects to long URL.
+
+That’s enough.
+
+⭐ 3) Estimation (Quick & Useful) — 2 minutes
+
+Assume:
+
+Writes: 1M URLs/day ≈ 12 writes/sec
+
+Reads: 10x reads → 120 reads/sec
+
+Avg long URL size: ~500 bytes
+
+Storage per day:
+
+1M × 500 bytes = ~0.5 GB/day
+≈ 180 GB/year
+
+
+Conclusion:
+
+Must use distributed storage.
+
+Must use caching (since reads >> writes).
+
+⭐ 4) High-Level Architecture — 2 minutes
+Client → Load Balancer → App Servers → Cache (Redis) → Database (NoSQL)
+
+Components:
+
+Load Balancer → Distribute traffic
+
+App Servers → Stateless, easy to scale
+
+Redis Cache → Fast redirects
+
+Database (NoSQL like Cassandra/DynamoDB)
+
+Key-value: shortId → longUrl
+
+Why NoSQL?
+
+Extremely fast key-value lookups
+
+Horizontal scalability
+
+Handles billions of rows
+
+⭐ 5) Data Model (Simple & Perfect) — 1 minute
+Table: URLMapping
+Field	Type	Notes
+shortId	string (PK)	Unique, 7 chars
+longUrl	string	Original URL
+createdAt	timestamp	Metadata
+expiry	timestamp (optional)	TTL
+
+Primary Key → shortId (perfect for KV lookup).
+
+⭐ 6) LLD (Low-Level Design, 1 minute)
+
+Lightweight LLD — enough for placements
+
+Classes:
+1. URLMapping
+
+shortId
+
+longUrl
+
+createdAt
+
+expiry
+
+2. URLShortenerService
+
+generateShortId()
+
+createMapping(longUrl)
+
+resolve(shortId)
+
+3. URLRepository
+
+save(shortId, longUrl)
+
+fetch(shortId)
+
+Relationship:
+Controller → Service → Repository → DB
+                   ↘ Cache ↙
+
+
+Keeps responsibilities clean (SRP).
+
+⭐ 7) Deep Dive: Short ID Generation (Most Important Part) — 2 minutes
+🎯 Approach Used: Auto-increment ID → Base62 encoding
+
+This is the best and most interview-friendly approach.
+
+Steps:
+
+Keep a counter: 1, 2, 3, 4, …
+
+Convert this number to Base62 (0–9, a–z, A–Z)
+
+Base62 makes ID short & compact
+
+Example:
+
+125 → “cb”
+5000000 → “4c92”
+
+Why This Is Best?
+
+Guaranteed unique
+
+Very fast
+
+No collisions
+
+Easy to shard ID-generation
+
+⭐ 8) Caching Layer (Very Important Concept) — 1 minute
+
+Redirects are read-heavy, so Redis cache is critical.
+
+Cache Flow:
+
+User clicks short URL
+
+App checks Redis:
+✔ If found → return 301 redirect (fast)
+✖ If not → fetch from DB → store in Redis → return result
+
+Cache Strategy:
+
+Cache Aside Pattern (industry standard)
+
+LRU eviction or TTL-based eviction
+
+⭐ 9) Scaling + Sharding + Replication — 2 minutes
+✔ 1. Sharding
+
+We can shard DB by:
+
+shardId = hash(shortId) % N
+
+
+Ensures even distribution.
+
+✔ 2. Replication
+
+1 leader + 2 followers per shard
+
+Ensures high availability
+
+✔ 3. App Server Scaling
+
+Stateless servers
+
+Can auto-scale horizontally
+
+✔ 4. CDN (Optional)
+
+Used only if we serve static preview pages.
+
+⭐ 10) Failures + Bottlenecks (Critical for scoring) — 1 minute
+Redis down?
+
+Fallback to database
+
+Slight latency increase
+
+DB primary down?
+
+Failover to replica
+
+High write spikes?
+
+Buffer via queue (Kafka/SQS)
+
+Smooth ingestion
+
+Hot shortId shard?
+
+Re-sharding
+
+Consistent hashing
+
+Mention 2–3 only.
+
+🎯 FINAL SHORT SUMMARY (What You Tell in Interview)
+
+“I designed a highly available, low-latency URL shortener using a load-balanced, stateless service with Redis caching and a NoSQL database.
+
+I used Base62 ID generation, a key-value schema, and cache-aside pattern for fast reads.
+
+The system scales via sharding and replication, and handles failures through automatic failover and fallback from cache to DB.”
+
+This fits perfectly in 15 minutes, covers:
+✔ HLD
+✔ LLD
+✔ Estimation
+✔ Scaling
+✔ Trade-offs
+✔ Failures
+✔ Core concepts
+
+🎉 Finished!
+
+Your URL shortener answer is now perfect for top college placements like Amazon, Uber, Microsoft, Atlassian, Walmart, and even Google L3.
