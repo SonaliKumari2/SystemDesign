@@ -3,3 +3,10 @@
 3) CDN -> Redis Cache -> Database
 4) Pre Signed URLS (used by instagrams)
 5) Proxy vs Reverse Proxy vs load balancing
+6)Monolithic vs Microservices Architecture
+
+Monolithic Architecture is a type of architecture which is developed as an indivisible unit and is deployed as a single unit. Everything is tightly coupled.
+The disadvantage here is that any updates in any one of the structure meant deploying the whole application again. It also has a single database. But , it has simple
+architecture but gives scalability issues.
+
+Microservice Architecture is kind of loose architecture which helps in scalibility and flexibility. And easy to maintain. 
