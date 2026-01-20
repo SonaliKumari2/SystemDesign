@@ -1,0 +1,13 @@
+Explanation :-
+Logging System is a System which tracks the health of servers by checking their performance metrics to determine whether they are working correctly or not.
+
+Questions asked :- Functional and Non Functional Requirements
+Functional Requirements include creating a system which tracks the performance of the cpu by storing their metrics in time based database which stores using (key,value) pair which is like (time,cpu) pair and
+non functional requirements include providing scalability and low latency.
+
+High Level Arhitecture.
+So, basically push and pull mechanism is used , in pull mechanism system asks the questions to server and then logs in their performance metric , and in push mechanism , the client asks the question and then logs
+in their performance . And time based db is used for this . Kafka which is like a temporarty storage , is a maessage queue , can be used for providing scalability.
+
+Core APIs
+Post api is used for taking the performance metrics and logging in .
