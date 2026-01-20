@@ -1,1 +1,22 @@
+1) Explain what exactly is notification system.
+Notification system is a system which takes notification from different services and send it to different users depending upon the medium of the user , by using
+which the user want to receive the notification.
 
+2)Ask clarifying questions and then give functional and non functional requirements.
+So , in notification system , functional requirements include that client should be able to get notification depening upon the priority of the notification .ie.
+if it is otp (one time password) , then it is of high priority , and it should be given to client with minimum latency , but if it is advertisement notification ,
+then latency is allowed . Rate limiting is also very important from client and server side , that how many times client can send the messages to server ,and how many
+times the server can send messages to client. Non functional requirements include high availability and very low latency. and it should be scalable.
+
+3)Back of the envelope estimation.
+Let's suppose there are 1 million people using the notification system , and 1 person recieves 10 notifications . then total notifications will be 10 million.
+so , per second , the number of notifications which will be received to the user is 10 million/(total number of second in a day). and if each notification store 
+5 MB , then total storage for 5 years will be (5 years)*(5 MB)*( 10 million/(total number of second in a day) ) .
+
+4) High Level Architecture .
+Then , first notifications is classified on the basis of priority . and then notification is sent according to the priority. 
+
+5)Core APIS , post api can be used for updating and posting the notification.
+
+6) various metrics are used for this determining whether the notification system is working correctly or not, like latency of receiving the notifications , number of no
+tifications sent , notifications per user , etc.
