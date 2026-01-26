@@ -10,3 +10,14 @@ The disadvantage here is that any updates in any one of the structure meant depl
 architecture but gives scalability issues.
 
 Microservice Architecture is kind of loose architecture which helps in scalibility and flexibility. And easy to maintain. 
+
+7)Queue
+It is used for handling traffic spikes.“Queues are used to decouple components, absorb traffic spikes, and ensure reliable asynchronous processing.”
+
+8)Push vs Polling
+In polling the client asks the same question again and again to the server . But , in push , whenever the server has any message , it is sent to the client.
+
+9)Idempotency
+Doing the same thing multiple times gives the same result.
+
+
