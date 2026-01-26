@@ -1,0 +1,47 @@
+Functional Requirements:
+User can send a message to another user
+User can receive messages in the same order they were sent
+Messages should be delivered when the receiver comes online
+Sender should know the delivery status of a message (sent / delivered / read)
+
+Non-Functional Requirements:
+Low latency message delivery (near real-time)
+High availability (messages should work even during failures)
+Reliability & durability (messages should not be lost)
+Scalability to support millions of concurrent users
+Security (end-to-end encryption)
+
+Typical components:
+Client (mobile app) , Load Balancer , Chat / Messaging Server , Presence Service , Message Queue , Storage
+
+📤 Message Send Flow (Correct Order)
+User A sends message from client
+Client sends message to Chat Server (via persistent connection)
+Chat Server:
+Assigns message ID
+Pushes message to Message Queue
+Message is stored in Message Store (durability). Chat Server checks Presence Service: If User B is online → deliver immediately . If offline → keep in store + send push notification
+
+“When a user sends a message, the client sends it to the Chat Server over a persistent connection. The Chat Server assigns a message ID, pushes the message to a queue, and persists it in the Message Store to 
+ensure durability.  The server then checks the receiver’s presence—if the receiver is online, the message is delivered immediately; otherwise, it is stored and delivered when the receiver comes online.”
+
+“WhatsApp ensures reliable and ordered delivery by persisting messages before delivery, assigning per-conversation sequence numbers to maintain ordering,
+and using acknowledgements with retries to guarantee exactly-once delivery.”
+
+“WebSockets are preferred over HTTP because they provide a persistent, bidirectional connection that enables real-time message delivery with low latency. HTTP polling is inefficient, increases latency, 
+and wastes server resources due to repeated requests.”
+
+“When a message is sent, the Chat Server assigns a message ID and stores it in the Message Store to ensure durability. If the receiver is offline, the message is marked as pending and a push notification is sent. When 
+the receiver comes online and reconnects via WebSocket, the server delivers all pending messages and waits for acknowledgements.”
+
+“Push notifications are used to notify and wake up offline users that new messages are available, but actual message delivery happens only after the client reconnects via WebSocket.”
+
+Scaling Whatsapp
+“WhatsApp scales by distributing users across multiple chat servers using persistent WebSocket connections. Message queues are used to handle high traffic without overloading servers, and messages are stored durably 
+to support offline users. Push notifications act as a wake-up signal, and failures are handled through retries and reconnections, allowing the system to scale to millions of users reliably.”
+
+“Queues in WhatsApp are used to buffer messages and decouple message sending from delivery, so the system can handle high traffic reliably without overloading chat servers.”
+Queue ≠ storage replacement
+Queue = traffic smoother + reliability layer
+
+
