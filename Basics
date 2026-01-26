@@ -18,6 +18,6 @@ It is used for handling traffic spikes.“Queues are used to decouple components
 In polling the client asks the same question again and again to the server . But , in push , whenever the server has any message , it is sent to the client.
 
 9)Idempotency
-Doing the same thing multiple times gives the same result.
+Doing the same thing multiple times gives the same result. Without idempotency , duplicate messages , payment deduction twice.
 
 
