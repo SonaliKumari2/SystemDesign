@@ -4,3 +4,6 @@ For celebrity users with millions of followers, fan-out on write would cause exc
 into the timeline.”
 
 Difference between Twitter Timeline System and Instagram feed System.
+
+“Twitter and Instagram feeds differ mainly in their goals. Twitter focuses on real-time, chronological content, so it uses fan-out on write to precompute timelines and optimize read latency. Instagram, on the other hand, prioritizes engagement and discovery, so its feed is ML-ranked, not time-based. Instagram performs candidate generation, ranking using user interaction signals, and heavy media delivery via CDNs. As a result, Instagram’s read path is more compute-intensive,
+while Twitter’s read path is simpler and faster.”
