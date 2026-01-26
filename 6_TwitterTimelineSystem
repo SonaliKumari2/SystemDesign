@@ -1,0 +1,6 @@
+“Twitter timeline is a read-heavy system that shows users recent tweets from the accounts they follow. To ensure low-latency timeline reads, we use a fan-out-on-write approach for normal users,
+where tweet IDs are precomputed and stored in users’ timelines and cached for fast access. Since most users consume far more content than they create, this significantly improves performance and user experience.
+For celebrity users with millions of followers, fan-out on write would cause excessive write amplification and high cost, so we use a hybrid approach where their tweets are fetched at read time and merged 
+into the timeline.”
+
+Difference between Twitter Timeline System and Instagram feed System.
