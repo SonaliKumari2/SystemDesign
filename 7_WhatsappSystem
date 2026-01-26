@@ -51,4 +51,6 @@ increasing sequence number as the sort key, which allows efficient ordering and 
 “A hot partition occurs when a single partition key receives a very high volume of requests, causing throttling. In chat systems, this happens for very active chats. We solve it by splitting the partition using time-based buckets, not
 by removing the chatId.”
 
+“For message delivery, userId is used to route the message to the correct user, while message ordering is handled using sequence numbers or server timestamps.”
+
 
