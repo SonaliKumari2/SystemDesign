@@ -48,4 +48,7 @@ Queue = traffic smoother + reliability layer
 provide fast writes without complex joins.”“For a one-to-one conversation, a unique chatId is created and reused for all messages between the two users. Messages are stored in DynamoDB with chatId as the partition key and a monotonically 
 increasing sequence number as the sort key, which allows efficient ordering and pagination of messages.”
 
+“A hot partition occurs when a single partition key receives a very high volume of requests, causing throttling. In chat systems, this happens for very active chats. We solve it by splitting the partition using time-based buckets, not
+by removing the chatId.”
+
 
