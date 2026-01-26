@@ -45,6 +45,7 @@ Queue ≠ storage replacement
 Queue = traffic smoother + reliability layer
 
 “Messaging systems are write-heavy and require horizontal scaling. NoSQL databases allow partitioning data by chatId and 
-provide fast writes without complex joins.”
+provide fast writes without complex joins.”“For a one-to-one conversation, a unique chatId is created and reused for all messages between the two users. Messages are stored in DynamoDB with chatId as the partition key and a monotonically 
+increasing sequence number as the sort key, which allows efficient ordering and pagination of messages.”
 
 
