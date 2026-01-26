@@ -1,0 +1,51 @@
+“I will design a simplified e-commerce system like Amazon or Flipkart that allows users to browse products, add items to a cart, and place orders.”
+
+Functional Requirements :-
+User can browse/search products
+User can view product details
+User can add/remove items from cart
+User can place an order
+User can view order status
+
+Non-Functional Requirements :-
+Performance
+Availability
+Scalability
+Consistency (especially inventory)
+Reliability
+
+Browsing Product.
+“When a user browses products, the request goes through the API Gateway to the Product or Search Service, which fetches product metadata from the catalog store.
+Frequently accessed product data is cached to ensure low-latency responses.”
+
+Adding items in a Cart.
+“When a user adds an item to the cart, the request goes to the Cart Service. The cart is maintained per user, and the cart data is usually stored in an in-memory store like 
+Redis for fast access. Each user has an independent cart that can be updated by adding or removing items.”
+
+Placing the Order.
+“When a user places an order, the Order Service first creates a pending order and requests the Inventory Service to reserve the required stock. Once the stock is successfully reserved, the Payment 
+Service processes the payment. If payment succeeds, the order is marked as confirmed and the reserved inventory is deducted.”
+“Overselling is avoided by reserving inventory before payment and using atomic inventory updates to ensure only available stock can be purchased.”
+✅ Option 1: Inventory Reservation (Most Common)
+Temporarily reserve stock when order starts
+Reservation has a TTL
+If payment fails → release stock
+
+✅ Option 2: Atomic Update / Lock (Mention briefly)
+Inventory decrement is atomic
+Only one request succeeds
+Don’t go deep unless asked.
+
+Scaling the System.
+The system is made scalable by horizontally scaling stateless services and using database sharding. Product catalog data, which is read-heavy, can be stored in a NoSQL key-value or document store and 
+heavily cached using Redis and CDNs for fast access. Images are served via CDNs.Critical workflows like orders and inventory use strongly consistent storage, while non-critical tasks are handled asynchronously.
+“Cache and CDN for reads, sharding for writes, stateless services for scale.”
+
+Durability/Reliabilty
+“Writes in an e-commerce system include order creation and inventory updates, which are scaled using database sharding. Read-heavy operations like product browsing are optimized using caching, and static content 
+is served via CDNs. Stateless services are critical for scalability because they allow requests to be handled by any server instance, enabling easy horizontal scaling and fault tolerance.”
+
+“Durability is ensured by persisting critical data like orders and payments to reliable databases before acknowledging success. Reliability is achieved using idempotency to avoid duplicates, inventory reservation to 
+prevent overselling, asynchronous processing via queues to isolate failures, database replication for fault tolerance, and graceful failure handling with retries and state transitions.”
+
+
