@@ -44,4 +44,7 @@ to support offline users. Push notifications act as a wake-up signal, and failur
 Queue ≠ storage replacement
 Queue = traffic smoother + reliability layer
 
+“Messaging systems are write-heavy and require horizontal scaling. NoSQL databases allow partitioning data by chatId and 
+provide fast writes without complex joins.”
+
 
