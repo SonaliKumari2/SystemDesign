@@ -59,11 +59,32 @@ cache, and returns it. This reduces latency and database load.”
 and requires very low-latency reads, which in-memory caches provide.”
 
 Ques. How uploads are retried ?
-
+video uploads are retried using chunked , resumable uploads. the video is split into small chunks , and each chunk is acknowledged by a server.
+If a upload fails ,the client resumes uploading from the last successfully received chunk instead of restarting the entire upload.
 
 
 #Cache invalidation
 #Hot video Handling.
+
+#Scalability .
+1)Read heavy optimization 
+Since youtube is read-heavy , most traffic is handled by cdn and caches , reducing load on backend services.
+
+2)Horizontal Scaling using Stateless services.
+Horizontal Scaling means adding more servers so that the one server does not get overloaded by the traffic. “Horizontal scaling means increasing capacity by adding more server instances. In YouTube, backend 
+services are stateless, so any request can be handled by any instance behind a load balancer. All state is stored in shared systems like Redis, databases, or object storage, which allows the system to scale 
+easily and reliably.” Stateful means tied to one server.
+
+3)Distributed Object storage
+Videos are stored in Distributed object storage , and is replicated across various regions which ensures high durability and no single bottleneck.
+
+4)Async Processing (like heavy computation)
+Heavy work like video transcoding and thumnail generation is done by async processing. Done such that it can't block uploads. 
+Video transcoding means converting a raw uploaded video into multiple formats and quality levels such that it can be streamed smoothly on different devices and network speed.
+
+5)Chunking + Adaptive Bitrate Streaming.
+
+
 
 
 
