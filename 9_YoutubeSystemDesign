@@ -1,0 +1,84 @@
+“I will design a simplified YouTube-like video streaming system where users can upload videos and other users can watch them. The system is highly read-heavy compared to writes.”
+
+Functional Requirements (keep it short):-
+Users can upload videos
+Users can watch/stream videos
+Users can view video metadata (title, duration, thumbnail)
+Videos should support different qualities (e.g., 240p, 720p)
+
+Non Fuctional Requirements :-
+Latency (video start time)
+Scalability (millions of viewers)
+Availability
+Durability (uploaded videos shouldn’t be lost)
+Performance (smooth playback)
+
+High Level Architecture.
+Client
+  ↓
+API Gateway
+  ↓
+Backend Services
+  ↓
+Object Storage  →  CDN  →  Viewer
+“At a high level, the system consists of a Video Upload Service, Video Metadata Service, Video Processing/Transcoding Service, Object Storage for videos, and a CDN for efficient video delivery.”
+
+So, there exist some main compoenents in high level architecture.
+1) Video upload service. -> So, first video is uploaded , and then that raw video is stored in object storage , then that video is converted to various qualities as background process and is stored in object
+storage . and then video metadata is updated that it is ready to watch.
+Ques 1. Why do we store videos in object storage instead of database ?
+Becuase videos are large files , and object storage is designed to store and serve large binary data efficiently and cheaply , unlike databases. Database is used to store the metadata of videos.
+
+Ques 2. Why video is converted to various qualities as background process? and is it necessary to do ?
+“If video conversion is done synchronously, uploads would be slow, servers would be blocked, and the system would not scale.”
+
+Now , Streaming or watching the video.
+
+Ques . Why does youtube breaks videos into small chunks for streaming.
+Chunks mainly exist to adjust quality. Youtube divides videos into small chunks primarily to support adaptive bitrate streaming which allows the player to dynamically change video quality based on current 
+network condition. Faster buffering and reduced latency are additional benefits.
+
+Ques. How youtube changes the quality of video while you watch.
+This is done by using Adaptive Bitrate Streaming(ABR). The video automatically changes the quality while playing based on internet speed. 
+Video is already stored in different qualities. Video is broken into small chunks. Player downloads chunks one by one. Before each chunk , Player checks network speed and Chooses best quality for next chunk.
+ABR = change quality, not stop video.
+
+Ques. How CDN caches videos ?
+When a user requests a video , the CDN first checks if the required video chunk is cached. If it is a cache hit , the CDN serves it directly . If it is a cache miss , the CDN fetches the chunk from object storage,
+caches it , and serves it to the user . This reduces latency and backend load.
+
+Ques. What happens if a CDN node fails ?
+If a CDN node fails , traffic is automatically routed to another healthy CDN node . If needed , the content is fetched from object storage and cached again , ensuring high availability.
+
+Ques. How metadata is cached ?
+“Video metadata is cached in an in-memory store like Redis. When a request comes in, the metadata service first checks the cache; on a cache miss, it fetches the data from the database, stores it in the 
+cache, and returns it. This reduces latency and database load.”
+
+#CDN is used for video chunks , and metadata is stored in redis.
+“CDNs are used for video chunks because they efficiently deliver large, static, bandwidth-heavy content from locations close to users. Metadata is cached in Redis because it is small, frequently accessed, 
+and requires very low-latency reads, which in-memory caches provide.”
+
+Ques. How uploads are retried ?
+
+
+
+#Cache invalidation
+#Hot video Handling.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
