@@ -1,1 +1,90 @@
+Defining the Problem 
+We are designing a real time system that matches riders with the nearest available drivers in a city , optimized for low latency and scalability.
+
+Functional Requirements :-
+Rider can request a ride.
+System finds nearby available drivers.
+Driver can accept / reject.
+Rider get driver details.
+Update driver and rider locations in real time.
+
+Optional (mention only if asked) :- like cancellation , Timeout if no driver accepts , Retry matching.
+
+Non-Functional Requirements. (good way to mention CAP)
+Low Latency
+High Availability (no downtime)
+Scalable (millions of users)
+Consistent location updates 
+Fault Tolerant.
+
+Availability is prioritized over strong consistency.In ride matching case , it is more important that the system responds quickly even if location data is slightly
+stlale , so eventual consistency is acceptable.
+
+1)Ride Matching Part.
+2)Location Handling.
+
+So, in Ride Matching Part , first Rider request for a ride , after this , the system checks and finds top N drivers which are available. And after that , whoever
+driver confirms the ride , the driver is locked to prevent double booking.Driver location is stored in redis using GeoHash , which allows fast radius-based queries.
+
+The main challenge in location handling is to frequently update millions of driver locations and efficiently query nearby drivers with very low latency.
+So, for storing this , Redis is used. 
+How Geo-Spatial indexing works ?
+1) Convert Location to GeoHash String -> (latitude + longitude ) -> GeoHash String
+2) Nearby locations share the same prefix.
+this is what makes searching faster.
+So, when you want drivers near a rider , first compute rider's geohash , then drivers with same prefixes are searched .
+
+How Geo-Spatial indexing in Redis works ?
+So, first converts location to number (GeoHash). This is called GeoHash. Then , Redis uses a sorted set (ZSET). Redis converts location to geoscore.
+Redis looks for scores closer to that number. It only scans nearby entries.
+
+Ques. How does GeoHash approximte distance.
+GeoHash does not calculate distance. It partitions the earth into grid cells and helps quickly identify nearby drivers. Exact distance is then computed.
+Computation of distance is expensive.
+
+3)Handling timeouts 
+If no driver accepts the ride within a timeout window , the system retries matching with the next set of drivers or expands the search radius.
+If a driver app crashes or disconnects , the lock is automatically released.
+
+
+Scaling the system and all other important stuff like availability , durability ,Reliability etc...
+Ques. Why is slight inaccuracy acceptable?
+Slight inaccuracy is acceptable because geo spatial indexing is only used for fast candidate selection. Exact distance and routing are computed later, and in ride
+matching , speed and availability are more important than centimeter level precision.
+
+Ques. GeoHash vs QuadTree.
+QuadTrees are useful when the data is static like map. QuadTree gives better precison but geohash offers better performance and simplicity. Quadtrees divide the
+whole map recursively into 4 regions. 
+
+Ques. Why Uber moved to H3 ? (only mention , if asked)
+because in geospatial, the grid is divided into squares , wheres in H3 , the area is divided into hexagonal grids , which reduces the boundary distortion or double
+counting the riders or missing the riders. Radius-based queries can be done easily here.
+
+Databases prioritize durability , redis prioritizes speed . Live Location data needs speed. Traditional database stores the informatino about the driver and rider 
+data.
+
+Ques. What if Redis crashes ?
+Solution : Replication means keepung a copy of Redis data on another machine. and Redis Sentinel is like a watchman which watches Redis servers and automatically
+switches to a Replica if the master fails.
+
+Ques. How many neighboring cells are checked ?
+We check the current cell and a small number of neighboring cells , expanding outward until enough candidate drivers are found.
+
+Ques. How traffic and ETA override distance ?
+ETA basically means estimated time of arrival , and this is more preffered than distance , that's why after generating the candidate , and computing the distance
+, neighbors are ranked according to ETA for better customer experience which determines how easily a driver can reach the destination.
+
+to make it scalable -> using redis (in memory cache) , and using load balancer.
+to make it available every time -> not using single point of failure , like horizontal scaling and rerouting when required
+minimum latency -> using sorted set , zset , using geospatial indexing for finding the nearby drivers. 
+performance -> minimum latency , improves the performance.
+
+
+
+
+
+
+
+
+
 
