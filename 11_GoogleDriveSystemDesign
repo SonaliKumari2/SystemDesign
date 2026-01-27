@@ -1,1 +1,7 @@
+Google Drive is an application which is used for cloud storage for storing and uploading files. 
+now , functiona requirements include uploading the file , deleting the file , renaming it or doing other small operations.
+Non functional requirments include :-
 
+. Now google drive components' can be divided into watcher, chunker , indexer and local database . so, fist watcher watches the operations which are happeing in file , and after that chunker divides the file ,
+and reuploads the content which is not uploaded or changed by checking that whether the hash of the content of the chunk exist or not , after that indexer acts like a coordinator , which maintains the local 
+dataaband and maintains the operations which happened , and is done both on online and offline. After that , it is stored to meta databse , which is centralized and only used when online.
