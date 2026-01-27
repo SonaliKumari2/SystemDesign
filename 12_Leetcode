@@ -1,0 +1,65 @@
+Problem , Functional Requirements
+Leetcode is a platform using which you can practise questions, submit the solutions in the languge you want , get the repsonse that whether the solution is accepted or not , and then in competitions should also
+be able to see the leaderboard. We will assume in the interview that the user is already logged in and it is stored in JWT or session.
+
+Non Functional Requirements
+The system should prioritize availabillity over consistency.
+The system should return submission results within 5 seconds.
+The system should scale to support competitions with 100000 users.
+The system should support isolation and security when running user code.
+
+So , after this , deep dive into your functional requirements and explain it one by one . 
+Then , mention core entities -> Problem , Submission , Leaderboard
+Then , you can define different apis which you will use and the parameters which will be accepted. 
+
+As this is an application with a very small database , Monolithic architecture can be used instead of microservices architecture.
+1) List all problems.
+Users shoule be able to browse a list of coding problems. this endpoint is read heavy , so i paginate the results and avoid returning the full problem statement to reduce the payload size and over fetching.
+Response :- Returns a partial view of a problem. Fields like id , title , difficulty , tags. 
+Endpoint :- Get/problems?page=1&limit=100. And i can store it in nosql database .
+
+2)  Users should be able to view a given problem and code the solution.
+User can use get api to get a problem which will have unique problem id.And , sending the language is also very important , because it only changes the representation and not the resource itself.
+
+3) User should be able to submit the solution and get the instant feedback.
+   So, we have to make sure that the solution is running on the testcases provided and then returning the solution. Send code , language , and response will be submission id and whether the solution is accepted
+   or not.
+
+   When a user makes a submission , the system will  first authenicate the request and after this submission id is created with pending request to identify unique submissoin for a particular problem such that 
+   the history can be maintained. Since user code is untrusted , it is not executed directly. Instead it forwards it to another container for execution , The container executes the code under strict memory
+   limits and CPU and returns the execution results . And relevant leaderboard is updated , and returns the verdict to the client.
+
+   Ques. what could happens if the user stored the submission id in the database after execution completes?
+   If we wait until execution completes before storing the submission, then any failure during execution—such as a container crash, network failure, or timeout—can cause the submission to 
+   be completely lost. By creating a submission record with a pending status before execution, we ensure that the submission is durably recorded even if execution never happens.
+
+    Pending -> Running -> Completed
+                       ->Timeout
+                       -> Execution_Error
+   
+4) Users should be able to view a live liveboard for competitions.
+For the live leaderboad , all the users which has highest submissions are fetched and it is sorted on the basis of ascending time. The client refreshes the data every few seconds to keep it live.
+
+Ques . How would you make fetching the leaderboard more efficeint ?
+Redis sorted set with periodic polling can be used to make it efficeint. Using web sockets for real time updates will be overkill here.
+
+Ques :- How would system scale to support competitions to support 100,000 users ?
+Horizontal Scaling with Queue can be used to support scaling.
+We can use horizontal scaling where aws handles containsers where containers can be added or removed , according to load. This is auto-scaling feature.
+And the queue can be added between api server and containers. To handle a large number of submissions smoothly during peak times. The submisson can be added in the queue , and when the container will be free,
+the code will be executed , and after executions , it returns the result back to the server , The API server updates the database , Updates the cache (like redis). Both are updated at the same time , to reamain
+consistent. As now by the addition of the queue , the system is made asynchronous , so polling can be done to determine that whether the result is achieved or not , and not add web sockets because it will add
+complexity of the system and will be overkill.
+
+Ques :- How would the system handle running test cases ?
+Testcases are created such that they are language independent and can run on any server. Testcases are stored in a format like JSON.  So, first user submits the code , Code is sent to a langugae specific
+container. And then that container already has everything , it just needs solution code from users.Test Harness reads the testcase , converts the testcase into real objects , Call the user's function ,
+checks and matches the output.
+
+
+      
+   
+
+
+
+
