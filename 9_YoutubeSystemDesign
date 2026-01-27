@@ -100,6 +100,7 @@ Metadata cached in Redis . Database has replicas. If cache fails , fallback to d
 
 5)Graceful Degradation.
 Even if something fails , video might load slightly slower. Lower quality may be served. But , system still works.
+Availability = replication + load balancing + fallback
 
 
 
