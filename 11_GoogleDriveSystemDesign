@@ -1,3 +1,4 @@
+Written by me:-
 Google Drive is an application which is used for cloud storage for storing and uploading files. 
 now , functiona requirements include uploading the file , deleting the file , renaming it or doing other small operations.
 Non functional requirments include :-
@@ -5,3 +6,202 @@ Non functional requirments include :-
 . Now google drive components' can be divided into watcher, chunker , indexer and local database . so, fist watcher watches the operations which are happeing in file , and after that chunker divides the file ,
 and reuploads the content which is not uploaded or changed by checking that whether the hash of the content of the chunk exist or not , after that indexer acts like a coordinator , which maintains the local 
 dataaband and maintains the operations which happened , and is done both on online and offline. After that , it is stored to meta databse , which is centralized and only used when online.
+
+Then , after that synchronization is done when users turns online , and is uploaded to the cloud only if not present.
+
+Database used :- File Metadata -> NoSQL.
+                 File blobs -> Object Storage.
+                 Analytices -> Data warehouse.
+
+Metadata is stored in nosql database , because it contains the instructions about how the file will be created again , so nosql supports horizontal scaling easily .so, that's why nosql database is used.
+FileBlob is basically actual file which stores the actual chunk (part of file which is uploaded by the user.) (for example :- Amazon S3)
+
+Scaling the sql database is very complex , but it can be done , but scaling a no sql database is easy , one just have to add more servers.
+SQL databases can be horizontally scaled using sharding and replicas.
+In NoSql database , it automatically Redistributed data and handles replication.
+
+Elasticity 
+It means that the system can basically scale up or scale down based on load. Instances can be added or deleted based on the load.
+Scalibility means whether the system can handle more workload and Elasticity is the ability to automatically scale up and down based on current demand.
+
+Ques. Sync across devices , conflict resolution , scaling and failure handling.
+Syncing can be explained by using all the four components above like watcher , indexer , splitter and local database.
+Conflict Resolution Techniques :- 1) Last write wins :- Each update has a timestamp. Latest timestamp overwrites others. Used for non collaborative files , like PDFs, images.
+                                  2) Versioning :- Versioning means maintanig multiple versions of the same file instead of overwriting it. But, the disadvantage is that it takes more space.
+
+Each component is scaled independently based on its workload.
+1) Scaling File Storage -> File blobs are stored in object storage , which scales horizontally and provides high durability by default.
+2) Scaling Metadata Database -> Use NoSql database , sharding can be done.
+3) Scaling Backend and Sync Services -> Stateless backend services are scaled horizontally behind load balancers, with message queues absorbing traffic spikes
+4) Scaling Downloads -> Use CDN . Cache frequently accessed files . Reduce load on backend.
+
+Handling Failures 
+1)Client fails -> The client maintains local state , so synchonization can resume after craches.
+2)Server Failure -> Even if one server fails , the traffic can be routed to another servers.
+3)Metadata Database failure -> can be solved by using replication to ensure high availability and durability.
+4)Message queue failures -> Message queues handle Durable queues , retry mechanism , idempotent customers. 
+
+Copy-Paste :- 
+1️⃣ Core Idea
+
+Instead of uploading and storing files as a whole, the system splits files into smaller chunks and uploads only the changed chunks. Metadata is used to reconstruct files and synchronize updates across devices.
+
+This approach:
+
+Reduces bandwidth usage
+
+Saves cloud storage
+
+Improves upload speed
+
+Supports file versioning and conflict resolution
+
+2️⃣ Chunking & Metadata
+
+Files are broken into content-based chunks, and each chunk is identified using a hash of its content.
+
+If a chunk doesn’t change, it is not uploaded again
+
+Identical chunks are stored only once (deduplication)
+
+Metadata stores:
+
+File information (name, size, version)
+
+Ordered list of chunk hashes
+
+Ownership and workspace details
+
+Metadata acts as instructions to reassemble the file during download or sync.
+
+3️⃣ Desktop Client Architecture
+
+The desktop client is responsible for detecting file changes and synchronizing them with the cloud.
+
+It has four main components:
+
+🔹 Watcher
+
+Continuously monitors sync folders and detects file create, update, or delete events.
+
+🔹 Chunker
+
+Splits files into chunks and identifies which chunks have changed. Only the modified chunks are uploaded.
+
+This improves:
+
+Network efficiency
+
+Upload speed
+
+Parallelism
+
+🔹 Indexer
+
+Acts as the coordinator. It processes events from the Watcher, manages file versions, updates the internal database, and communicates metadata updates to the backend using a message queue.
+
+🔹 Internal Database
+
+Stores local state such as chunk mappings, file versions, upload status, and offline changes.
+
+It enables:
+
+Offline support
+
+Crash recovery
+
+Faster operations
+
+Conflict detection
+
+The internal database is the client’s local source of truth.
+
+4️⃣ Metadata Database vs Internal Database
+
+The Metadata Database is the global source of truth stored in the cloud, while the Internal Database is the client’s operational memory.
+
+Metadata DB supports synchronization across users and devices
+
+Internal DB supports offline mode, retries, and performance optimization
+
+Both are required.
+
+5️⃣ Message Queuing Service
+
+A message queue enables asynchronous and loosely coupled communication between clients and the Synchronization Service.
+
+There are two types of queues:
+
+🔹 Request Queue (Global)
+
+All clients send metadata update requests here
+
+Multiple Synchronization Service instances consume requests
+
+Provides load balancing and scalability
+
+🔹 Response Queues (Per Client)
+
+Each client has its own queue
+
+Used to deliver update notifications
+
+Required because messages are deleted once consumed
+
+6️⃣ Synchronization Service
+
+The Synchronization Service is the core component responsible for maintaining consistency across clients.
+
+It:
+
+Processes file update requests
+
+Validates changes against metadata
+
+Updates the Metadata Database
+
+Notifies all subscribed clients
+
+Subscribed clients are:
+
+Devices or users that have access to a file, folder, or workspace and need to receive updates.
+
+Offline clients:
+
+Poll the service when they reconnect
+
+Receive only missed updates
+
+7️⃣ Cloud Storage
+
+Cloud Storage stores the actual file chunks.
+
+Clients directly upload and download chunks using cloud APIs
+
+No need to build custom storage
+
+Services like Amazon S3 can be used
+
+Google Drive uses Google’s own internal storage systems, but in real designs we typically use managed storage like S3.
+
+8️⃣ End-to-End Flow (Quick)
+
+User modifies a file
+
+Watcher detects the change
+
+Chunker splits the file
+
+Changed chunks are uploaded to cloud storage
+
+Indexer updates local DB
+
+Synchronization Service updates metadata
+
+Subscribed clients are notified and synced
+
+🎯 Final One-Line Summary
+
+This architecture uses chunk-based uploads, metadata-driven synchronization, asynchronous messaging, and cloud storage to efficiently support file syncing, versioning, offline access, and scalability across multiple devices.
+
+
