@@ -84,6 +84,26 @@ Video transcoding means converting a raw uploaded video into multiple formats an
 
 5)Chunking + Adaptive Bitrate Streaming.
 
+#How availability is ensured ?
+1)No single point of failure.
+Multiple instances of each service exist behind load balancer. So, Load balancer routes traffic to another server , if one server fails.
+
+2)CDN replication for video delivery.
+CDN replication ensures video remains available even if individual CDN nodes fails.
+
+3)Replicated video storage.
+If one storage nodes fails , the another replica serves the video.
+Object storage uses replication to ensure high availability and durability of videos.
+
+4)Metadata availability using cache + db replicas.
+Metadata cached in Redis . Database has replicas. If cache fails , fallback to database . If one DB replica fails , another replica serves data.
+
+5)Graceful Degradation.
+Even if something fails , video might load slightly slower. Lower quality may be served. But , system still works.
+
+
+
+
 
 
 
