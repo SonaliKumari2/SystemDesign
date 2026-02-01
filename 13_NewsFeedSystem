@@ -1,1 +1,28 @@
+News Feed System is an application where you can perform basically two operations 1) Can post , 2)Can generate News Feed -> these are the functional requirements.
+
+Back of the envelope estimation :- 500 M DAU , and each user sees the feed , let's suppose 5 times = 500*5M= 2.5 B requests per day , so , per second => 2.5 B / 24 * 60 * 60 , and in KB -> few text is stored ,
+in MB -> songs or pdf files are stored , and in GB -> videos are stored , so a post has 1KB , and if each user's will have maintained 500 fan out service , so total number of storage required will be :-
+500 * 2.5 * 1 . So, storage will be in TB.
+
+Non-functional Requirements :- Performance (low latency) and if friends post something , then it should be in the feed within 5 minutes.
+
+1) Post
+So, first whenever user wants to post something , it sents the request , the request is load balanced , and is sent to a server which autenticated the identity of the user. And , after that post .
+Notification service notifies their friends that you have posted something . And fan out is done . Now , fan out is of two types , fan out on write (push model) and fan out on read (pull model) , so hybird
+model is used , for people with million of followers fan-out on read is used which is more efficient , and for people who uses instagram very rarely , fan out on write is used . So, during posting , all the
+friend's id get fetched using graph database (neo4j) , and all that id is put into the message queue , and asyncrhonously , the post is fed into their system , and precomputed which reduces the latency.
+The information about the user is stored in sql database , and information about the post is stored in no-sql database.
+
+2)Generate News Food.
+So, for this , get api request is used , which is first distributed by using api server , and then when it goes to one of the api , authentication is done and rate limiting is done , and after that ,
+it fetches the news feed from the cache and serves it.
+
+Optimization
+1)By using and building CDN(Content Delivery Network) which is used for serving static images.
+
+Reliabilty 
+1)Data Replication
+Scalability
+1)Horizontal Scaling , 2)Consistent Hashing
+
 
