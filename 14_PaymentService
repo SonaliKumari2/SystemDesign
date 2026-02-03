@@ -1,1 +1,55 @@
+We are creating a system which can handle the payments efficeintly.
+
+Now , functional requirements include that a user should be able to pay efficeintly means need to move money from one back to another.
+what kind of payment system we are building ? by using payment service provider or directly connecting it to third party ser
+vices such as visa card schemes or acquiring bank. , but direct connections are not made and even if made , some regulations need to be followed , like KYC ("know your customer") , AML (anti money laundering) 
+to protect the accounts from criminal monetary activity and for every country it differs , so mostly payment service provider is preferrerd.
+
+Non-functional requirements inlude reliability , high availability because even failure for some seconds can lead to huge losses , and and it should be fault tolerant.
+
+High Level Architecture.
+What happens is that when user clicks for payment button , a payment event is generated and sent to the payment service. This service will coordinate the payment process ,like it first stores the payment 
+event in the database. Second , it will call the external service for the card payment such as stripe or paypal or payu. And will sent all the payment details like amount , currency , and all that stuff.
+There are two ways to provide this page :- Can use the form provided by the payment service provide or can built in house. The second option does not justify the effort and then we also have to handle
+sensitive information and have to go to all the compliance process. And , then the main function of the payment service provider is to send these details to banks or card schemes(visa or mastercard). 
+After the payment is done successfully , the coordinator handles and updates the wallet and stores it in the database . wallet belongs to merchant. and then the ledger is used for recording all the 
+transactions record by record and mainly used for post analysis to support the auditing or to suppor the total revenue of e-commerce.
+
+Here , many internal and external services are communicating with each other , so asynchronous communication is done.
+Asynchronous communicaton is preferred over synchronous communications because hardware or software devices can fail at any time . And networks can be slow and reliable.
+And we don't want to reduce the availability of the whole system. It can also handle uneven traffic and spike in traffic gracefully. Tolerant to failure and tolerant to big latencies.
+
+Dealing with Payment failures.
+Failures can occur due to vaious ways :- System failures (usual network and server failures)
+                                         Poison Pill Errors ()
+                                         Functional Bugs (no, technical errors but results are invalid.) (for example , if a user enters correct password , then the user should be able to login.)
+Failures can be handled by using concepts such as :- Redundancy , Idempotency , Fault-tolerance.
+
+For guaranteeing the delivery of messages , messaging queue can be used. kafka has very high availability because it's only function is to store the messages.
+
+How to treat transient errors ? (transient errors are short lived errors and they can be solved after some retry.)
+by using retry strategies , timeouts and fallbacks.
+
+let's suppose that a user has entered a card info but due to some error , it is taking time . so , problem like this can be solved by using retry where retry parameters are number of retries and time between 
+retry. so , there exist various types of retries such as immediate retry , fixed interval retry , incremental retry or exponental backoff retry. Exponential retry backoff is more preferred because it lets the
+server breathe. 
+Timeouts can also be used where if the response is taking more than fixed amount of time , then the response will be aborted. And , then the request will be made again. How to decide the timeout time ?
+it depends on the serve and should be high enough such that even slow responsed should arrive and low enough that it is not taking forever for the request to arrive.
+
+Fallbacks are used when current system is not working and we can fall on something.
+
+Avoid double payments using idempotency. So , idempotency key is sent with http header .said as uuid.
+
+How to deal with permanent failures ?
+
+Making use of distributed Systems.
+Redudnacy which improved reliablity
+then load balancing.
+fault tolerant.
+scalability by adding the servers.
+
+
+
+
+
 
