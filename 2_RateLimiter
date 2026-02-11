@@ -11,3 +11,19 @@ the token bucket algorithm and fixed window counter algorithm , these two algori
 sliding window log algorithm , sliding window counter algorithm. 
 4)High level architecture. Talk about the design.
 5) How to make it scalable and how to handle thorttling issues ? how to optimze the performance.
+
+Revision
+So, we are creating a Rate limiter System whose work is that the system allows only x number of request , in fixed amount of time , and if the requests exceeds the threshold , then the request is rate limited.
+so, this is functional requirement.
+It is used for saving the resources , prevents from  loading the server and helps in cost management. 
+non-functional requirements include low latency , availability , fault tolerance and scalability .
+
+Now, high level architecture inlcudes that the first request is sent through api towards load balancer , and then the load balancer will distribute the request to rate limiter, rate limiter fetches the rules from
+the cache and uses distributed redis cache , to fetch the counter value to see whether the request is exceeding the threshold or not , on the basis of limiting rules , the number is fetched , and if the 
+count is not exceeding the threshold , then it is put in message queue or synchronously , according to the request which is made , other wise it is rate limited.
+and using centralized redis cache will act as single point of failure , so to remove this , sharding or replication of redis cache can be done.
+
+Now , there exists various algorithms such as:-
+1)Leaky Bucket Algorithm
+2)Token Bucket Algorithm
+3)Sliding window algorithm
