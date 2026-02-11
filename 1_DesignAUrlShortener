@@ -249,3 +249,21 @@ This fits perfectly in 15 minutes, covers:
 🎉 Finished!
 
 Your URL shortener answer is now perfect for top college placements like Amazon, Uber, Microsoft, Atlassian, Walmart, and even Google L3.
+
+Revision :-
+To create a system which can take long url and convert it to short url , and can take short url and redirect the users to long url.
+This is the functional requirement.
+Non -functional requirements include :- high availability , sclability , fault tolerance and low latency.
+Now , to create an api endpoint , for converting the long url to short url , post api can be used with additional parameters such as expiration and alias.
+And , for fetching the long url for short url , get api can be used , and for updating the long url for a particular short url , put api can be used.
+Now, i will present a high level architecture , where first user will access the system using api , and then the request will be directed towards the load balancer which distributes the request to 
+prevent overloading a single server , and after that , it goes towards api gateway and then api gateway is used for handling the traffic and for routing , and then database will be accessed ,
+now if a particular link is already present , then first check the cache , otherwise access it from the database, 
+now for the database preference , choose no-sql database over sql database to maintain scalability , high availability , fault tolerance , and due to flexible schema.
+
+now , the system is very read-heavy , it's like read is 100 times more than write , now , le't suppose 10 million urls are generated per day , so qps can be dervied by 10 million /24*60*60 .
+so , storage will be equal to 100 bytes (for long url) + 10 bytes (for short url) + 40 bytes (storage) , so total storage will be 150 bytes.
+
+for generating a unique short url , hashing can be used , by auto-incrementing the key , and then hashing it , which will always produce correct result.
+Sharding , replication , can be done evenly.
+best shard key = short url . sharding is done by using  hashing technique.
