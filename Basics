@@ -4,6 +4,11 @@
 4) Pre Signed URLS (used by instagrams)
 5) Proxy vs Reverse Proxy vs load balancing
 6)Monolithic vs Microservices Architecture
+7)Queue
+8)Push vs Polling
+9)Idempotency
+10)API Gateway
+11)Load Balancer
 
 Monolithic Architecture is a type of architecture which is developed as an indivisible unit and is deployed as a single unit. Everything is tightly coupled.
 The disadvantage here is that any updates in any one of the structure meant deploying the whole application again. It also has a single database. But , it has simple
@@ -19,5 +24,16 @@ In polling the client asks the same question again and again to the server . But
 
 9)Idempotency
 Doing the same thing multiple times gives the same result. Without idempotency , duplicate messages , payment deduction twice.
+
+10) API Gateway
+API Gateway , main role is to route traffic to correct server while it can also do tasks like authentication and rate limiting.
+
+11) Load Balancer
+It helps in distributing the request to the servers such that one server does not get overloaded. Ensures high availability , scalibility and fault tolerance.
+
+i) Load Balancer -> API gateway , where main focus is upon scalibility and fault tolerance.
+ii) API Gateway -> Load Balancer , where main focus is upon authentication , authorization and rate limiting and then there exist different load balancer configurations for different web servers.
+
+
 
 
