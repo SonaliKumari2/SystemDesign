@@ -14,9 +14,11 @@ sliding window log algorithm , sliding window counter algorithm.
 
 Revision
 So, we are creating a Rate limiter System whose work is that the system allows only x number of request , in fixed amount of time , and if the requests exceeds the threshold , then the request is rate limited.
-so, this is functional requirement.
+so, this is functional requirement. as the twitter allows only 300 tweets 3 hours.
 It is used for saving the resources , prevents from  loading the server and helps in cost management. 
 non-functional requirements include low latency , availability , fault tolerance and scalability .
+
+now , it can be used for preventing server from getting overloaded or cutting the cost if it is using third parties apis.
 
 Now, high level architecture inlcudes that the first request is sent through api towards load balancer , and then the load balancer will distribute the request to rate limiter, rate limiter fetches the rules from
 the cache and uses distributed redis cache , to fetch the counter value to see whether the request is exceeding the threshold or not , on the basis of limiting rules , the number is fetched , and if the 
@@ -27,3 +29,34 @@ Now , there exists various algorithms such as:-
 1)Leaky Bucket Algorithm
 2)Token Bucket Algorithm
 3)Sliding window algorithm
+
+Rate Limiter can be placed on the place of rate limiter after load balancer.
+
+what is the difference between hard limit and soft limit ?
+hard limiting means request is immediatly rejected if it exceeds the particular threshold , it is used in login attempts or payments.
+soft limiting means request is not immediately rejected but handled gracefully , by delaying the response by putting it in message queue , it can be used in sending emails which improves user experince.
+
+how failures are handled ? like what if redis is down ?
+failures can be handled by using fail open stratgey or fail close stratgey . fail open stratgey means that the request are allowed even if the redis is down , it is used where availability is more important
+than strict control , like it can be used in social media apis , but , the cons is that it may lead to backend overload , but , pros is that it improves user experince and  whereas fail close stragey means
+no request is accepted , it is used when consistency is more important than availability , and it can be used in payment or log in problems 
+
+but , failure can be reduced by applying techniques such as :-
+1) Replication -> where if node fails , then that node gets upgraded to master node.
+
+how to handle the hot key problem ?
+for this, sharding can be used.
+
+how to handle burst handling ?
+token bucket algorithm handles bursts better.
+but , in leaky bucket algorithm , bursty traffic gets smoothed.
+
+distributed rate limiting challenges .
+maintaing the consistency is a challenge here , so centralized redis cache can be used. Redis can be used which supports atomic operations.
+
+ques. why redis is used for rate limiting ?
+because it is fast , is in-memory and supports atomic operations.
+
+
+
+
