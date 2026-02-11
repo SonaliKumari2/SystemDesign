@@ -45,6 +45,7 @@ but , failure can be reduced by applying techniques such as :-
 1) Replication -> where if node fails , then that node gets upgraded to master node.
 
 how to handle the hot key problem ?
+hot key problem means you are accessing one redis key many times at a time.
 for this, sharding can be used.
 
 how to handle burst handling ?
