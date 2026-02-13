@@ -25,3 +25,227 @@ backoff after any error. We are also adding indexing for making sure that we can
 
 Back of the envelope estimation:-
 Means assume 1 million servers , and each server produces 1kb/second , so total number of logs which are prodcues is (1million*1kb)/second.
+
+Questions :-
+✅ 📌 Logging System – Quick Revision Notes
+✅ Q1. How do you handle sudden spike in logs?
+
+✔ Use message queue (Kafka) as buffer
+✔ Absorb burst traffic
+✔ Prevent storage overload
+✔ Collector can buffer locally
+
+Answer Line:
+
+“Kafka buffers spikes and protects downstream systems.”
+
+✅ Q2. How do you scale log ingestion?
+
+✔ Horizontal scaling of collectors
+✔ Kafka partitions
+✔ Add more brokers
+
+Answer Line:
+
+“Scale via horizontal collectors and Kafka partitioning.”
+
+✅ Q3. Logs grow GB/day → TB/day?
+
+✔ Compression
+✔ Partitioning (time/service)
+✔ Horizontal storage scaling
+✔ Retention policies
+✔ Move old logs → S3
+
+Answer Line:
+
+“Scale storage, compress logs, apply retention.”
+
+✅ Q4. How ensure logs are never lost?
+
+✔ Local buffering
+✔ Kafka durability
+✔ Replication ⭐
+✔ Retry + exponential backoff
+✔ ACK mechanism
+
+Answer Line:
+
+“Durability ensured via buffering, replication, retries.”
+
+✅ Q5. What if Kafka fails?
+
+✔ Collector buffers actual log events ⭐
+✔ Memory → Disk buffer
+✔ Offset updated after ACK
+
+Answer Line:
+
+“Collector buffers events until Kafka recovers.”
+
+✅ Kafka Retention Explained
+
+✔ Kafka doesn’t store forever
+✔ Time-based / Size-based deletion
+
+Answer Line:
+
+“Kafka retention defines message lifetime.”
+
+✅ Q6. What if storage fails?
+
+✔ Kafka buffers logs
+✔ Retry writes
+✔ Fallback storage
+✔ Replication
+
+Answer Line:
+
+“Kafka retains logs until storage recovery.”
+
+✅ Q7. How keep log writing low latency?
+
+✔ Async logging ⭐
+✔ Local disk write
+✔ Kafka buffering
+✔ Batching
+
+Answer Line:
+
+“Use async non-blocking logging.”
+
+✅ Q8. Why async logging?
+
+✔ Prevent blocking app
+✔ Low latency
+✔ High throughput
+
+✅ Q9. Which storage & why?
+
+✔ Elasticsearch → Fast search
+✔ Cassandra → High writes
+✔ S3 → Cheap archive
+
+Answer Line:
+
+“Use tiered storage (hot vs cold).”
+
+✅ Q10. Elasticsearch vs S3?
+Elasticsearch	S3
+Fast search	Cheap storage
+Indexed	Slow queries
+Expensive	Good for archive
+✅ Q11. How reduce storage cost?
+
+✔ Compression
+✔ Retention policy
+✔ Tiered storage
+✔ Filtering logs
+✔ Sampling
+
+✅ Q12. Retention Policy
+
+✔ Hot → Warm → Cold
+✔ Delete/archive old logs
+
+Answer Line:
+
+“Retention balances cost vs query speed.”
+
+✅ Q13. Fast search across TB logs?
+
+✔ Indexing ⭐
+✔ Elasticsearch
+✔ Partitioning
+✔ Columnar formats
+
+✅ Q14. What is Indexing?
+
+✔ Fast lookup structure
+✔ Avoid full scan
+
+Answer Line:
+
+“Indexing enables fast queries.”
+
+✅ Q15. Optimise time-range queries?
+
+✔ Time partitioning
+✔ Index timestamp
+
+✅ Q16. Why Kafka vs direct DB writes?
+
+✔ Async
+✔ Buffering
+✔ Decoupling ⭐
+✔ High throughput
+✔ Replay capability ⭐
+
+✅ Q17. Tradeoffs of heavy indexing?
+
+✔ High CPU/memory
+✔ Slow writes
+✔ Costly
+
+✅ Q18. Hot vs Cold Storage
+Hot	Cold
+Fast	Cheap
+Recent logs	Historical logs
+✅ Q19. Retry Strategy
+
+✔ Exponential backoff ⭐
+✔ Prevent overload
+
+✅ Q20. Dead Letter Queue (DLQ)
+
+✔ Stores failed messages
+✔ For debugging/reprocessing
+
+✅ Q21. Why process logs?
+
+✔ Parse
+✔ Normalize
+✔ Enrich
+✔ Filter
+
+✅ Q22. Filtering logs
+
+✔ Drop debug/noisy logs
+✔ Remove duplicates
+✔ Ignore health checks
+
+✅ Q23. Structured vs Unstructured Logs
+
+✔ Structured (JSON) → Easy search ⭐
+✔ Unstructured → Hard parsing
+
+✅ Q24. How secure logs?
+
+✔ RBAC / IAM ⭐
+✔ Encryption
+✔ AuthN/AuthZ
+✔ Audit trails
+
+✅ Q25. Who accesses logs?
+
+✔ Authorized users
+✔ DevOps / Security / Engineers
+
+✅ Q26. Mask sensitive data
+
+✔ Redaction ⭐
+✔ Hashing
+✔ Field masking
+
+✅ Q27. Logs for alerting?
+
+✔ Yes ⭐
+✔ ERROR spikes
+✔ Security alerts
+
+✅ Q28. Detect anomalies?
+
+✔ Pattern monitoring ⭐
+✔ Threshold alerts
+✔ Behaviour anomalies
+✔ ML (optional)
