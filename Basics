@@ -10,6 +10,7 @@
 10)API Gateway
 11)Load Balancer
 12) Difference between Data Partitioning and Data Sharding
+13)Consistent Hashing
 
 Monolithic Architecture is a type of architecture which is developed as an indivisible unit and is deployed as a single unit. Everything is tightly coupled.
 The disadvantage here is that any updates in any one of the structure meant deploying the whole application again. It also has a single database. But , it has simple
