@@ -22,3 +22,6 @@ with low latency and at the same time we want to make the system reliable such t
 and all the unwanted logs are filtered and after that depending upon the applicaton , the log is stored , and then user can query it .
 We can make the system scalable by horizontally scaling it , and failure is handled because we are using queues , and we will readd the log with exponential
 backoff after any error. We are also adding indexing for making sure that we can answer the queries easily and efficiently. 
+
+Back of the envelope estimation:-
+Means assume 1 million servers , and each server produces 1kb/second , so total number of logs which are prodcues is (1million*1kb)/second.
