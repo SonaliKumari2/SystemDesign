@@ -19,4 +19,14 @@ Then , first notifications is classified on the basis of priority . and then not
 5)Core APIS , post api can be used for updating and posting the notification.
 
 6) various metrics are used for this determining whether the notification system is working correctly or not, like latency of receiving the notifications , number of no
-tifications sent , notifications per user , etc.
+tifications sent , notifications per user , etc. 
+
+Revision
+Notification System is a system which is used where if you will log in the application , you will receive a notification in email. Now, functional requrirements
+include that user should be able to get a nofitication , and user preferences should also be considered , and non functional requirements inlcude high availability ,
+scalibility , low latency , high durability means no notification should be lost .
+So, high level architectures includes that there will be a starting notification api which will accept the notification , then first there contains various
+message queues in which you can add your notification. now , notification processes the server , and if there exist any error , then that nofication is
+again added in the queue , and if the notification remains to be failed , then it is added in the dead letter queue , which is checked manually for erros.
+Now, to make it scalable , data sharding can be done. And horizontal scaling can also be done.
+
