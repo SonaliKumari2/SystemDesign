@@ -11,3 +11,14 @@ in their performance . And time based db is used for this . Kafka which is like 
 
 Core APIs
 Post api is used for taking the performance metrics and logging in .
+
+Revision
+Logging system is a system which is used for storing all the logs such that user can query it easily , these are functional requirements , non functional requirements 
+inlcude that the storage of the logs should take low latency and at the same time , the non functinoal requirements inlcude that the system should have low latency 
+for storage , and query should also take very minimum time , and there should be low cost storage for the data which is not accessed frequently or is very old , 
+first , we have log procuers which produce the logs , that log can be of any type like it can be of error type or debug type , then after that we have log collector 
+which collectes all the types of logs , and then after that we have message queue in which log is stored , we make the whole process asyncrhonous to make the system 
+with low latency and at the same time we want to make the system reliable such that no log is lost , after that log is processed ,
+and all the unwanted logs are filtered and after that depending upon the applicaton , the log is stored , and then user can query it .
+We can make the system scalable by horizontally scaling it , and failure is handled because we are using queues , and we will readd the log with exponential
+backoff after any error. We are also adding indexing for making sure that we can answer the queries easily and efficiently. 
