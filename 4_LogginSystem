@@ -13,6 +13,7 @@ Core APIs
 Post api is used for taking the performance metrics and logging in .
 
 Revision
+Log Generator -> Log collector -> Message queue -> log processor -> stored in elastic search or s3 , depending upon the end goal.
 Logging system is a system which is used for storing all the logs such that user can query it easily , these are functional requirements , non functional requirements 
 inlcude that the storage of the logs should take low latency and at the same time , the non functinoal requirements inlcude that the system should have low latency 
 for storage , and query should also take very minimum time , and there should be low cost storage for the data which is not accessed frequently or is very old , 
