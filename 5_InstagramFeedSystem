@@ -1,1 +1,40 @@
+Instagram is a social media platform which is used to share media such as photo , video.
+So, functional requirements inlucde:-
+   User can post a photo/video.
+   User can follow another users.
+   User should be able to see the recent posts , when the feed is uploaded.
+And, non-functional requirements include :-
+   High Availability
+   Low Latency
+   High Scalability
+   Durability
+   And eventual consistency is allowed.
+
+Back of the envelope estimation.
+DAU= 500 million users
+Each users posts once in every 5 days , assume.
+So, total number of posts per day = 500 million * 0.2 =
+total number of posts per second = 500 million * 0.2 / ()=
+number of read = 100 * number of write.
+
+So, it can be implemented by using apis.
+where post api can be used for posting the content.
+get can be used for getting an individual post for a particular user and
+get can also be used for gettting the news feed.
+
+High Level Architecture.
+First , user interacts with the application , and the request is forwarded towards load balancer which distributes the request , after that the request is 
+forwarded towards api handler which is used for authentication and rate limiting , and then it goes towards post service , where first content such as photo or
+video is uploaded in the amazon s3 , and then the url is generated , which is sent towards the post service, and post service store the meat data about the post
+and its link in the database like nosql , to keep update , and then it is returned to the user , that link. Now , ater that , a message queue is used , which 
+users asynchronously do operations , like neo4j is accessed which is used for storing the relationships of user followers , now , feed is also computed there,
+followers of a particular person is accessed using neo4j database , and then a hybird model , which is the combination of push and pull model is applied , to
+generate the feed. So, feed is computed previously which is a push model (write model) , such that with minimum latency , the user can see the recent posts , but
+if a celebrity has million of followers , then for generating the feed , pull model (which is a read model) is applied. And , then caching is done to store
+precomputed feeds.
+For , hot post problem , cdn + caching is used.
+Cursor based pagination is used instead of offset based pagination to avoid duplicate posts.
+
+Here , availability is more important than consistency. So, here eventual consistency, is preferred.
+
 
