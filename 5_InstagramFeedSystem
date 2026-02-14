@@ -34,6 +34,10 @@ if a celebrity has million of followers , then for generating the feed , pull mo
 precomputed feeds.
 For , hot post problem , cdn + caching is used.
 Cursor based pagination is used instead of offset based pagination to avoid duplicate posts.
+Push model is expensive for celebrities due to write amplification , but pull model shifts the cost to read , which is manageable via caching.
+why are reads much easier to scale than write ?
+Because reads can be optimized using cache and cdn , whereas writes need to access database and also requires replication .
+what happens if cache fails ? -> then serverd directly from the main database.
 
 Here , availability is more important than consistency. So, here eventual consistency, is preferred.
 
