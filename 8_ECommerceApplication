@@ -19,11 +19,12 @@ Browsing Product.
 Frequently accessed product data is cached to ensure low-latency responses.”
 
 Adding items in a Cart.
-“When a user adds an item to the cart, the request goes to the Cart Service. The cart is maintained per user, and the cart data is usually stored in an in-memory store like 
-Redis for fast access. Each user has an independent cart that can be updated by adding or removing items.”
+“When a user adds an item to the cart, the request goes to the Cart Service. The cart is maintained per user, and the cart data is usually stored in an 
+in-memory store like Redis for fast access. Each user has an independent cart that can be updated by adding or removing items.”
 
 Placing the Order.
-“When a user places an order, the Order Service first creates a pending order and requests the Inventory Service to reserve the required stock. Once the stock is successfully reserved, the Payment 
+“When a user places an order, the Order Service first creates a pending order and requests the Inventory Service to reserve the required stock. Once the stock 
+is successfully reserved, the Payment 
 Service processes the payment. If payment succeeds, the order is marked as confirmed and the reserved inventory is deducted.”
 “Overselling is avoided by reserving inventory before payment and using atomic inventory updates to ensure only available stock can be purchased.”
 ✅ Option 1: Inventory Reservation (Most Common)
@@ -50,5 +51,45 @@ prevent overselling, asynchronous processing via queues to isolate failures, dat
 
 Revision :-
 The user should be able to a) browse the product , b) should be able to place order , 3) check order status , 4) should be able to write/view product reviews.
-Non-functional requirements include :- Low latency , high consistency , 
+Non-functional requirements include :- Low latency , high consistency (placing orders , order status) , scalability and reliability.
+and the priority that we will give to availability or consistency depends upon the component.
+
+Back of the envelope estimation
+Total registered users~300million ,
+daily active users -> 50 million, out of each person , assume 100 requests per second (includes browsing , search, add to cart), 
+so, total requests per day = 50 million * 100 = 5 billion requests / day. , which is 5 billion / (86400) = 58K RPS . Peak RPS = 10 * 58K = 580K RPS.
+E-commerce is ready heavy system , order estimation = 5% of daily active users = 2.5 million buyers /day , so approximately , 2.5 million orders / day ,
+peak sale = 10x = 25 million buyers / day.
+So, storage estimation :- 2.5 M * 1 KB = 2.5 GB / day
+so, storage per  year = 2.5GB * 365  = 1 TB / year
+
+data size hierarchy :-
+Unit	Full Form	Approx Size
+bit (b)	Binary digit	0 or 1
+Byte (B)	8 bits	1 character
+KB	Kilobyte	~1,000 Bytes
+MB	Megabyte	~1,000 KB
+GB	Gigabyte	~1,000 MB
+TB	Terabyte	~1,000 GB
+PB	Petabyte	~1,000 TB
+
+Database choice :- 
+now, for maintaing the user profile , user database (sql) is required which stores user name , first name , last name , email.
+, we can also have database for storing the address , because a user can have mutliple addresses.
+for product table , nosql database like mongodb or dynamodb can be used.
+for reviews , key-value db can be stored.
+
+Core APIs to be used :-
+1) using get api to get the product catalog
+2) addToCart(userId,productId,qty,amount) -> returns true or false , that whether product is added or not.
+3) Place order (userId,productId,addressId,paymentStatus) -> return true or false , that whether order is placed or not.
+4) Check order status using get api , and it will return the status of the order
+
+
+High Level Architecture :- Implementations of core apis.
+
+
+
+
+
 
