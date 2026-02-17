@@ -48,4 +48,7 @@ is served via CDNs. Stateless services are critical for scalability because they
 “Durability is ensured by persisting critical data like orders and payments to reliable databases before acknowledging success. Reliability is achieved using idempotency to avoid duplicates, inventory reservation to 
 prevent overselling, asynchronous processing via queues to isolate failures, database replication for fault tolerance, and graceful failure handling with retries and state transitions.”
 
+Revision :-
+The user should be able to a) browse the product , b) should be able to place order , 3) check order status , 4) should be able to write/view product reviews.
+Non-functional requirements include :- Low latency , high consistency , 
 
