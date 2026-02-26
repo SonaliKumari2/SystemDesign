@@ -184,93 +184,31 @@ Services like Amazon S3 can be used
 
 Google Drive uses Google’s own internal storage systems, but in real designs we typically use managed storage like S3.
 
-8️⃣ End-to-End Flow (Quick)
+Revision :- 
+functional requirements :- uploading a file , maintaing sync across devices , maintaing file versioning , giving access permissions to the file.
+non functional requirements :- scalibility , availability , low latency , reliability/durability
 
-User modifies a file
+for uploading the file ,
+divide into chunks , and used to achieve parallelism , data deduplication (two methods :- in line and post process)  , resumability.
+after uploading of the chunks , the database metadata is updated.
 
-Watcher detects the change
+for updating the file,
+the updated chunk is uploaded again , and the associated metadata with that is changed , and after that , the signal is send the the notification service
+, that service sends the notification using long polling or web sockets to update it to maintain the sync.
 
-Chunker splits the file
+to handle the conflict resolution , copy conflict or last write wins can be used.
+google docs -> uses operational transformation and uses instructions , instead of using blocks for uploading the data .
 
-Changed chunks are uploaded to cloud storage
+so , database choice -> sql (prefer consistency more over availability for metadata) , using object storage (for storing files and videos)
 
-Indexer updates local DB
+scalibility -> database sharding , stateless request and caching for metadata.
+availaibility -> replication , load balancing , multi region deployment (to minimize the downtime)
+high reliability / durability -> object storage (contain 11 9's) , use checksums to prevent any hardware decay , 
+fault tolerance -> use replication , use exponential backoff
 
-Synchronization Service updates metadata
+for reading the file , for a partciular file , the list of all its chunk ids from the metadata is fetched , and then that chunk id is fetched from the object 
+storage , and then assembled.
+if the system renames the file , it is deleted from the redis cache , if present , to avoid any inconsistencies.
+rate limiting can be used for avoiding single user for misusing the system.
 
-Subscribed clients are notified and synced
-
-🎯 Final One-Line Summary
-This architecture uses chunk-based uploads, metadata-driven synchronization, asynchronous messaging, and cloud storage to efficiently support file syncing, versioning, offline access, and scalability across multiple devices.
-
-
-Gemini said
-This is your "Cheat Sheet" for the Google Drive System Design interview. Use this to review 30 minutes before your interview.
-
-1. Requirements & Scope
-Functional: Upload/Download, Sync across devices, Version history, Permissions (Sharing).
-
-Non-Functional: * Durability: 99.999999999% (don't lose files).
-
-Availability: 99.9% (system stays up).
-
-Consistency: Strong consistency (files shouldn't disappear after an edit).
-
-Scalability: Handle millions of users and petabytes of data.
-
-2. Storage & Chunking
-Chunking: Split files into smaller blocks (e.g., 4MB).
-
-Benefits: Parallel uploads, resumable uploads, and efficient deduplication.
-
-Deduplication: Store only one copy of a unique chunk globally using Hashes (SHA-256). Saves massive storage space.
-
-Object Storage: Use AWS S3 or Google Cloud Storage for actual file chunks (cheap and durable).
-
-3. Metadata & Database
-Database Choice: Relational (SQL) like PostgreSQL or Spanner for ACID compliance (strong consistency).
-
-Metadata Content: File names, sizes, paths, user IDs, and Chunk-to-File mapping.
-
-Sharding: Split Metadata DB by User_ID to handle massive scale.
-
-Caching: Use Redis for:
-
-User Sessions.
-
-Recent file lists (for fast "Home" page loads).
-
-Permissions (to avoid constant DB hits).
-
-4. Synchronization & Communication
-Push Mechanism: Use WebSockets or HTTP Long Polling for real-time sync notifications.
-
-Differential Sync: Only upload the specific chunks that were changed, not the entire file.
-
-Notification Service: Tells "Device B" to trigger a download because "Device A" modified a file.
-
-5. Conflict Resolution
-Approach: Optimistic Locking using version numbers (V 
-1,V 2 ,...).
-
-The Conflict: If two users edit V 
-1
-​
-  while offline, the first to reconnect "wins."
-
-Resolution: The server rejects the second user's update. The client app then saves the work as a "Conflict Copy" (e.g., file_copy_john.txt) to prevent data loss.
-
-6. Permissions (Access Control)
-ACL (Access Control List): A table mapping User_ID and File_ID to permissions (Owner, Editor, Viewer).
-
-Inheritance: For folders, use Path-based checks or Closure Tables to avoid slow recursive updates of millions of files.
-
-7. Reliability & Scalability (The "Senior" Points)
-Bit Rot Prevention: Use Background Scrubbing. Periodically verify chunk checksums and replace corrupted data from healthy replicas.
-
-Load Balancing: Distribute traffic to "Stateless" app servers.
-
-CDN: Use for public/popular files to reduce latency based on geography.
-
-Retries: Use Exponential Backoff for failed uploads to prevent crashing the server with "thundering herd" requests.
 
