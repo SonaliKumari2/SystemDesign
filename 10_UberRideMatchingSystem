@@ -79,6 +79,30 @@ to make it available every time -> not using single point of failure , like hori
 minimum latency -> using sorted set , zset , using geospatial indexing for finding the nearby drivers. 
 performance -> minimum latency , improves the performance.
 
+Revision:-
+Functional requirements :- Driver's location should be updated every time , so that the rider knows where the driver is . User should be able to book or cancel the ride.
+System should be able to make correct match driver with rider.
+
+Non functional requirements :- scalibility , availability , low latency , fault tolerance.
+
+so, driver's location needs to be updated within every 5 seconds and websocket is created with the server , such that the location (long,lat) is sent to the server,
+and then the server , sents it to the function which converts it to geohash , and then it is then stored in the dataset.
+now , when user wants to book a ride , first the word with the same prefixes are find , to find the approximate distance of drivers , it is stored in redis cache
+, because it can be accessed more easily and has minimum latency , and then if that driver accepts it , then it is proceeded otherwise , the next driver is called.
+
+but , we have edge problem with geohash , because it divides the region into squares , and if a driver is in the edge , then for the both the strings for the different
+squares even with the same distance , it will have completely different prefix , so to solve this problem h3 is proposed , which divides the region into hexagons.
+such that first server converts the (long,lat) to hexagonal cell, and that hexagonal cell is sent to the server , now that server sends it to redis pub/sub model,
+where it publishes the updated location of the driver to all the riders which are present in that hexagon , and after that when any rider opens the application , then
+it is shown the updated location.
+
+what if driver's internet is patchy ?
+then , the updates are stored locally , and then it is send in batch wise , when the driver returns , but if the driver remains offline for more than 30 seconds,
+then the status of it is turned offline and it is not assigned any rides.
+
+
+
+
 
 
 
