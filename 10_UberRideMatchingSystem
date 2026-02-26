@@ -95,20 +95,14 @@ squares even with the same distance , it will have completely different prefix ,
 such that first server converts the (long,lat) to hexagonal cell, and that hexagonal cell is sent to the server , now that server sends it to redis pub/sub model,
 where it publishes the updated location of the driver to all the riders which are present in that hexagon , and after that when any rider opens the application , then
 it is shown the updated location.
+And , sorting is done not on the basis of just time , but on the basis of eta , which is like expected time of arrival which includes traffic and all that stuff.
+so, this is achieved by using OSRM (Open Source routing machine). OSRM engine is like a routing engine , which in very minimum latency compares and tells the eta.
 
 what if driver's internet is patchy ?
 then , the updates are stored locally , and then it is send in batch wise , when the driver returns , but if the driver remains offline for more than 30 seconds,
 then the status of it is turned offline and it is not assigned any rides.
 
-
-
-
-
-
-
-
-
-
-
+Scaling can be handled by using sharding. And data can be sharded on the basis of region such that shard 1 will store the location of the driver about region delhi,
+and shard 2 will store the information about the location of the driver in shard 2.
 
 
