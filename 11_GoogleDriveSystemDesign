@@ -202,6 +202,9 @@ Subscribed clients are notified and synced
 
 🎯 Final One-Line Summary
 
+Summarised form :-
+functional requirements ->
+
 This architecture uses chunk-based uploads, metadata-driven synchronization, asynchronous messaging, and cloud storage to efficiently support file syncing, versioning, offline access, and scalability across multiple devices.
 
 
