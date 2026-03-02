@@ -48,6 +48,25 @@ then load balancing.
 fault tolerant.
 scalability by adding the servers.
 
+Revision:-
+Functional Requirements :- Pay in , Pay out , Status tracking and Transaction History
+Non-Functional Requirements :- Consistency , Idempotency and High Availability for the checkout page. otherwise it lead to huge loss.
+
+High Level Architecture :- first , request -> load balancer -> api gateway (does rate limiting) -> payment servie (like heart of the service) ->
+                           handles idempotency validation. And after idempotency validation , Payment event is created in the RDBMS marking the status.
+                           and RDBMS . Instead of calling the bank/PSP directly , it is put into the message queue -> decoupling (frontend or external ban
+                           king system) . so , it changes the system from asyncrhonous to synchronous -> 1)Load smoothing , 2)Retry Logic , 3)Fault Tolerance.
+                           A worker called the Payment executor consumes the message from the queue -> contains payment token and make a secure HTTPS request
+                           to the external payment service providers like banks -> which further talks to Card numbers which further talks to issuing 
+                           bank for the money. And here we are using token instead of car details -> because of PCI-DSS compilance. that's why Payment
+                           executor , so  , if database is ever hacked , hackers only found tokens instead of actual card numbers.
+PCI-DSS compilance :- Payment Card Industry - Data Security Standard -> set of rules , formed by major card brands (like visa , mastercard) to ensure all
+                      companies who deal with credit card related information maintain a secure environment. So, some strategies include data minimization
+                      (storing only the last numbers ) and
+                      
+
+
+
 
 
 
