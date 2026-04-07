@@ -45,6 +45,7 @@ so , database -> horizontally distributed -> using hashing
 problem :- when servers will be added or removed , too much data movement is required.
 solution :- consistent hashing , in this key and servers can be placed in a circular ring. each key is assigned to the nearest server clockwise.
 advantages :- data movement is minimal , easy to compute which all keys need to be moved.
+disadvantages :-what if some servers are placed close , and some are placed very far , then there can be load on one server.
 
 
 
