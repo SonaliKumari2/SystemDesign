@@ -44,7 +44,7 @@ many users exist -> so load on a single database -> single point of failure
 so , database -> horizontally distributed -> using hashing
 problem :- when servers will be added or removed , too much data movement is required.
 solution :- consistent hashing , in this key and servers can be placed in a circular ring. each key is assigned to the nearest server clockwise.
-disadvantage :- data movement is minimal.
+advantages :- data movement is minimal , easy to compute which all keys need to be moved.
 
 
 
