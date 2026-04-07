@@ -39,6 +39,12 @@ ii) API Gateway -> Load Balancer , where main focus is upon authentication , aut
 12) Data Partitioning means partitiong the data and it can be on the basis of row or column . it is like more general term , and it can happeng withing one databse server 
 but data sharding is a technique in which database is divided on the basis of rows withing mutliple database servers using a shard key technique
 
+13) Consistent Hashing :-
+many users exist -> so load on a single database -> single point of failure
+so , database -> horizontally distributed -> using hashing
+problem :- when servers will be added or removed , too much data movement is required.
+solution :- consistent hashing , in this key and servers can be placed in a circular ring. each key is assigned to the nearest server clockwise.
+
 
 
 
