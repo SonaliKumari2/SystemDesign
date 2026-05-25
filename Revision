@@ -1,2 +1,90 @@
 1
-URL Shortener 
+Problem Statement :- Design a URL shortener service like bit.ly
+
+1.1 Gather requirements (functional and non functional)
+1.2 API Design / Database Design
+1.3 High Level Design (how servers communicating with each other and database communication)
+1.4 Deep Dives
+
+1.1
+Functional Requirements :-
+-> URL Shortening :- Get unique URL
+-> URL Redirection
+-> Link Analytics
+
+Non-Functional Requirements :-
+-> Minimize redirect latency
+-> 100M DAU
+-> let's suppose each user =10 requests , so 1B reads per day = 10K RPS (10^9 / 10^5)
+-> 5B total lifetime URLs
+
+1.2
+POST/api/urls/shorten
+Req :- Long URL
+Res :- Short URL
+
+get request don't have a request body.
+Get/api/urls/{shortUrl}
+Res :- Redirect 301
+
+1.3
+1.3.1
+client -> url service -> database
+client -> api gateway -> (url redirection service , url shortening service) -> (database+cache)
+                                     |> counter
+
+1.3.2
+but , in this case api gateway is overkill because we only have two services.
+api gateway decides which service the request should go to.
+
+1.3.3
+tradeoff between caching and analytics , if use caching , we won't be able to do link analytics , if
+we have to do link analytics , then don't do caching.
+
+1.3.4
+-> Short URL Generation , Base-62 encoding (A-Z,a-z,0-9)  _ _ _ _ _ _ (62^6) 
+   6-7 characters short url length.
+-> Short URL will be stored in the database with format :-
+            shortUrl : string
+            longUrl : string
+            uid : string
+            created_at : date
+            used_count : int
+
+1kb * 1 Billion = 5 TB
+
+1.3.5
+How to generate unique short URLs ?
+(i)
+-> using counter by implementing it useing redis cache (by using key-value pair)
+-> downside :- single point of failure 
+-> upside :- redis is single threaded so no need to worry about concurrency issues.
+
+(ii)
+-> randomly generating strings by using md5 or sha256.
+-> collision can occur , but can be solved by using retries.
+-> no need to optimize the latency in URL shortening service => < 5 seconds is fine,o/w overkill
+
+-> optimizing url redirection service :- 10K RPS => using vertical scaling , 
+                       now-a-days , vertical scaling can handle at most 100 k requests/second
+                                                 or read replica sets <= use caching instead of this
+                                                    sharding (will be overkill)
+
+1.4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
