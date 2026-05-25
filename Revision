@@ -1,3 +1,9 @@
+Gateway
+Proxy Server
+Reverse Proxy
+Load balancer
+consistent hashing
+
 1
 Problem Statement :- Design a URL shortener service like bit.ly
 
@@ -87,14 +93,431 @@ analytics
 2
 Rate Limiter
 
+2.1
+limting the number of times a user can request the server.
+
+2.2
+Types of algorithms to implement Rate Limiter :-
+-> Token Bucket Algorithm
+   in this , a bucket is present , and has refilling rate , so particular number of requests can be
+   satisfied , and if overflow , then the request is rejected.
+     refiller :- 3 tokens/second
+     capacity :- 5 tokens
+
+    pros :- easy to implement , allows a burst of traffic
+    cons :- two parameters :- bucket size and token fill rate => tuning them is hard.
+
+-> Leaky Bucket Algorithm
+   requests made by user , is placed in the bucket.
+   the bucket is leaky. 
+   then request which will come out of bucket will be processed.
+   the hole controls the flow of the processing
+   and there is a capacity of bucket , if requests overflow , then the request will be dropped.
+
+   pros :- suitable for a stable outflow rate .
+   cons :- two parameters in the algorithm :- bucket size and rate at which request is processed.
+
+-> Fixed Window Counter Algorithm
+   in this , we are dividing timeline into fixed windows and assigning a counter for each window.
+   once the counter reaches the threshold , new requests are dropped
+
+  pros :- easy to understand
+          spike in traffic at the edges of a window could causre more requests than the allowed 
+          quota to go through (because it does't have strict limiting policies which is useful in
+          some cases)
+
+  cons :- spike in traffic at the edges of a window could causre more requests than the allowed 
+          quota to go through
+
+-> Sliding window log algorithm
+   fixes the problem of sliding window counter algorithm.
+   in this , the algorithm keeps track of timestamps , usually stored in cache.
+   when a new request comes in , remove all the outdated timestamps.
+   if the log size is the same or lower than the allowed count , a request is accepted,else rejected.
+
+-> Sliding window counter algorithm
+   (sliding window log algorithm + fixed window counter algorithm)
+   we have fixed window , and then we are checking the percentage of current window and previous
+   window. and then like count the number of requests , and if greater than the threshold, then
+   the request is dropped.
+   
 3
-Notification System
+Notification System (ingesting approach)
+
+3.1
+user came to log in application , and we want to send welcome email
+POST/singup {fname,lname,email} -> storing it in database
+sendEmail() ---------> return success (but this is synchronous)  (third-party apis is called)
+
+problem :- latency because of external system.
+           system depends on external service.
+           rate limiting issues because third parties impose rate limit. (let's suppose 100 people are pressing sign-up button at the same time.)
+
+3.2
+(i) Addition of email server
+
+now , sync causing the problem , so make it async.
+when post api call , store the data in a database (workflow as same as above) , but add another
+server which will handle emails .
+email server , will sendReqToEmailServer
+email server will maintain the connection with gmail.
+
+but still 30 calls - OK , 70 calls - FAIL (but possibility of crashing reduced)
+
+(ii) Introduce queue
+-> enqueue :- sendReqToQueue , not waiting for the request to be processed => reducing latency
+-> if , the request is not processed, re-add it in queue. => retry
+   if the service is down for one day , then it will re-add continuoulsy wasting the operations.
+   so for this introducing exponential back-off mechanism. 
+   0 seconds -> 1 -> 2 -> 4 -> 8 -> 16
+   and max Retry can also be introduced. like if max Retry is reached , then the request can be added in
+   dead letter queue. which can be monitored by user manually.
+   
+-> if rate limiting 35 messages/second , only allowing 25 messages/second => rate limiting also handled
+                              by introducing delay after sending 25 messages per second.
+
+(iii) Load balancer
+     distributes the load evenly among the users.
+
+-> one server which watches the queue and then sends the email accordingly to the third party apis.
+workflow :- users -> load balancer -> queue 
+
+3.3
+3.3.1
+feature addition :- 
+   email needs to be sent when user during multiple events like singup , user login , user post , friend request
+    so, for this :- POST/login , trigger sendToEmailQueue (discussed above)
+                    POST/post  , sendToEmailQueue
+                    POST/friend-req , sendToEmailQueue
+
+3.3.2
+for friend request => push notification queue (we use firebase push notification)
+User Post, only in app Notification
+so , now we have introduced two types of queue :- inApp queue , emailQueue
+so, logic is changed little bit , now
+
+       POST/login => sendToEmailQueue
+       POST/post  => sendToAppQueue
+       POST/friend-req => sendToPushQueue (scalable , but not extensible) because for any change , 
+                                            we have to change the code. and queues are tied up
+
+3.3.3
+so,for decoupling, introduction of event driven architecture , trigger the event for user.signup, user.login, user.send_req,user.post
+now you don't have to change the queues everytime. (kind of fan-out architecture) => message comes and it got fanned out into multiple queues.
+                    now , just , write POST/login => sendEventToSNS
+                                       POST/post => sendEventToSNS
+                                       POST/friend-req => sendEventToSNS
+
+so, you announce the events and queues listen to it.
+so, event server (pub/sub or sns (simple notification system)) can be created.
+
+3.3.4
+let's suppose you are a part of conversation in slack , now do you want to be emailed for this? no,right.
+so, for handling this, you don't need email , so what and what not to message?
+for this :- INGESTING => means accepting the notifications from different services and bringing them into
+            pipeline.
+so, introducing cache (key-value pair) , which finds out when the user was present online last time.
+if it was 2 days ago , then sending the notification. 
+it it was 2 minutes ago, then not sending the notification.
+ans also before generating any notification , check the settings which the user has used, like it 
+may happen that user has turned off the notifications.
 
 4
 Parking Lot
 
+4.1
+Introduction and Problem Statement
+
+-> The system manages different vehicle types.
+-> Vehicles enter and exit after making payments.
+-> A parking slot is assigned upon entry and freed upon exit
+-> Payment must be completed before leaving.
+-> The system handles different vechicle sizes and slot allocations efficiently.
+
+4.2
+Clarifying Questions 
+
+-> will there be multiple slot types based on vehicle size ?
+-> are we supporting multiple payment methods ?
+-> can there be multiple floors in the parking lot ?
+
+4.3
+Identifying key components
+
+-> vehicle
+public abstract class Vehicle{
+        protected String licensePlate;
+        protected VehicleType type;
+}
+
+-> Parking Lot
+class : ParkingLot
+Description :- Manages Parking slots and vehicle allocations.
+responsible for :- allocating and releasing parking slots.
+                   tracking occupied and free slots
+
+public class ParkingLot{
+      private List<ParkingSlot> slots;
+}
+
+-> Parking Slot
+class : ParkingSlot
+description : Represents an individual parking space with a specific type and availability status.
+
+Each slot has :- a type (bike,car,truck)
+                 an availability status (occupied/free)
+
+public class ParkingSlot{
+      private VehicleType slotType;
+      private boolean isOccupied;
+}
+
+-> Payment System
+class : Payment
+public interface PaymentStrategy{
+       boolean processPayment(double amount);
+}
+
+4.4
+Design Patterns
+
+-> strategy pattern :- for payments and parking fares
+-> factory pattern :- for vehicle creation (might be overkill)
+-> singleton pattern :- parking lot management
+-> observer pattern :- for exit notifications 
+
+4.5
+Implementation
+ -> Parking fee strategy -> basicHourlyRateStrategy , PremiumRateStrategy
+ -> Payment strategy -> CashPayment 
+                     CreditCardPayment
+-> Vehicle -> licensePlate : String , vehicleType : String (vehicle factory is used for creating vehicles)
+           CarVehicle , BikeVehicle , OtherVehicle
+-> ParkingLot -> parkingSpot : List<ParkingSpot>
+              + findAvailableSpot(vehicleType:String) : String
+              + vacateSpot(spot:ParkingSpot,vehicle:Vehicle) :void
+-> ParkingSpot -> CarParkingSpot (vehicle : Vehicle) boolean
+                  BikeParkingSpot (vehicle : Vehicle) boolean
+
+((i) pricing strategy , (ii) payment strategy , (iii) factory for vehicle creation and actual concrete vehicles (bike,car,truck)
+, (iv) parking lot -> parkingSpot )
+parkingSpot -> private int spotNumber
+               private boolean isOccupied
+               private Vehicle vehicle
+               private String spotType
+
+parkingLot -> List<ParkingSpots> parkingSpots;
+              public ParkingLot(List<ParkingSpot> parkingSpots){
+                    this.parkingSpots=parkingSpots;
+              }
+
+4.5
+Deep diving according to what interviewee has asked
+
+Extensibility :- Multi-Floor Parking Lot
+
+
 5
 Chat System
+
+(by gaurva sen , tbh not much understandable to me.)
+
+5.1
+Requirements Gathering
+-> group messaging , one-to-one requirement
+-> sent + delivered + read recipts
+-> online / last seen
+-> image sharing
+
+5.2
+core apis
+
+5.3
+High level design
+authentication -> user request -> load balancer -> goes to different servers -> goes to different databases.
+
+5.4
+Deep Dives
+
+5.4.1
+Feature 1
+so, user A wants to send message to user B
+so, user A gets connected to gateway . and gateway sends this request to sessions using sendMessage(B)
+then session contains information about which gateway user B is connected to.
+then , user B receives the message.
+
+5.4.2
+Feature 2
+B can use long polling to see whether any message has arrived for it or not.
+we are going to use => web sockets (very good for real time chat)
+and then also acknowledgement is sent to make sure that the message is sent and received.
+
+5.4.3
+Feaure 3
+
+B wants to know the last time when A was online.
+So, B asks for this information to the server.
+in somewhere , database , user along with its lastime is stored. which can be accessed by server.
+so, if we just want to show whether user is online or not.
+we can have a threshold , like if the time is more than 50 seconds , show "offline" , else "online.
+
+but , updating last time is tricky. whenever a user sends the request to the gateway , have a 
+microservice (last seen microservice) for user tracking. 
+but , problem :- it may happen that application sends out some kind of update instead of client.
+                so, for this server needs to be smart enough to understand this.
+
+5.4.4
+Group Messaging
+
+(i) group service handles what are the other members in the group.
+(ii) one to many mapping :- group id to user id
+(iii)  consistent hashing , message cues
+
+-> retrial
+-> imdempotency
+-> ordering
+
+-> deprioritizing messages during festivals like dropping the feature of last seen , cause not that
+  important.
+
+(by InterviewWithBunny)
+Design an Chat Server (Messenger/Whatsapp)
+use should be able to send and receive message from friends and groups in near real time.
+
+5.1
+Requirements
+
+Functional Requirements
+-> user log in /sign up
+-> one-to-one messageing
+-> group messaging
+-> delivery/read recipts
+-> support both text/media message
+-> last seen
+-> message history
+
+Non-Functional Requirements
+-> scale :- 1 billion users , 100 msg/day , so 100 B msg/day
+   so, total volume = 1kb * 100B = 100TB/day
+-> cap :- avilability > consistency
+-> low latency < 500 ms
+-> highly reliable with no message loss
+
+Core Entities :- user , group , message/chat
+
+5.2
+Core APIs
+(i)
+-> signing up :- post/v1/user/register {PostBody :- userName , email/phone...}
+(ii)
+-> sending one to one message :-
+        messages are sent in real time using web socket instead of http call.
+        ws : /v1/message/send
+-> for chat history :- using getEndPoint
+        GET/v1/chat/{userId} : List<Chat> : Pagination
+
+(iii)
+major end points needed for creating a group :-
+
+POST/v1/groups/create
+POST/v1/groups/{groupId}/add
+POSt/v1/groups/{groupdId}/remove
+
+5.3
+High Level Designnig
+user ->  load balancer+gateway -> user service -> user DB
+                               -> chat service -> chat db(to store textual) , blob or s3(to store images)
+                               -> group service -> to manage the groups in the system -> group db
+                               
+
+load balancer and gateway :- authentication and authorization , 
+                             rate limiting ,
+                             distributing the traffic uniformly across all our backend server
+
+function of user service :- onboarding the user into our application.
+
+5.4
+Low Level Designing
+5.4.1
+Design of database :-
+(i) userDB :- userDB (PostGres) -> userId
+                               username , email , phone ,status , lastseen , metadata.
+
+usign PostGres because it is more easy to scale than sql.
+
+(ii) groupDB :- groupID , groupName , description , metadata
+     groupMappingDB (PostGres) :- id , groupId , userId , joinedDate , metadata
+
+(iii) 
+http connection :- client sends the request , and the server only sends the ack or response. and use get for getting the messages
+                    but simple unnecessary calls , because what if user has not seen the message.
+long polling :- client sends the request to the server , and waits for the response from the server.
+server sent event (SSE) :- here , the server sends the response to the registered client , unidirectional
+web socket connection :- full duplex connection between client and server and sent in real time,
+                          no delay or wait.
+
+
+5.4.2
+Chat Service Layer
+user ->  load balancer +  gateway -> various chat servers
+
+so, dedicated websocket gateway + load balancer for various chat services.
+
+so, when one user wants to chat with another user ,
+websocket connection needs to established between both of them.
+
+so, the user is sending message to his friend containing (message,to,from)
+and users are connected to different chat servers.
+so, there should be mapping between userId and the chat server. => this is present in redis cache.
+this is websocket registry. 
+websocket connection is very heavy weight and has very high bandwidth. so , it is not possible to open up
+for 1 billion websocket connection over here. so TTL will be present over here. so, web socket connection 
+will get deleted from web socket registry.
+
+now , it may happen , that one user is not able to send the message to another user because user is offline.
+so this data needs to be stored in the database.(chatDB (cassandra or dynamo db) or groupDB)
+
+chatDB -> id , chatId , messageId , senderId,receiverId , message , type (text/image) , timestamp , deliveryStatus
+
+5.4.3
+Group Messaging
+group service :- for a particular group , retrieve all the members which are present .
+so , first group service is called , and then using iterator , the message is sent to the respective client.
+if offline , the entry will get persisted in the db.
+
+
+5.4.4
+Image uploading
+file or image gets uploaded in the backend service , request goest to lb+gateway -> image uploading service
+-> blob storage or S3 for storing high quality videos or images , then image url will be returned by s3
+, then the url gets persisted in the chat db.
+after that , send(msg,to,from) , so instead of msg => image is present.
+
+
+6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   
+
+
+
+     
+
+
 
 6
 Instagram/News Feed System
