@@ -493,8 +493,41 @@ file or image gets uploaded in the backend service , request goest to lb+gateway
 , then the url gets persisted in the chat db.
 after that , send(msg,to,from) , so instead of msg => image is present.
 
-
 6
+Instagram/News Feed System
+
+
+7
+Solid Principles
+
+7.1
+SOLID -> single responsibility => every class should have one job or one purpose.
+         open/close principle => means open for extension but close for modification(extend class behaviour without modifying it)
+         liskov substitution principle => child class should substitute parent seamlessly
+                (in vehicle (startEngine() )class , like bicycle , bike , they shouls be seamlessly
+               able to define the startEngine , but cart or bicycle can't define startEngine() seamlessly.
+         interface segregation principle => segregates interface based on functionality
+         dependency inversion principle => classes should depend upon abstract classes or interface , instead
+                                           of depending upon concrete implementations.
+
+DRY -> Don't repeat yourself
+KISS -> keep it simple stupid
+YAGNI -> You aren't gonna need it
+
+7.2
+Importance of Solid principles
+used for scalibility , maintainability , testability , readability
+
+7.3
+
+
+
+
+
+
+
+
+
 
 
 
@@ -519,8 +552,6 @@ after that , send(msg,to,from) , so instead of msg => image is present.
 
 
 
-6
-Instagram/News Feed System
 
 
 
