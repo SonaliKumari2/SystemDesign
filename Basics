@@ -17,6 +17,9 @@ The disadvantage here is that any updates in any one of the structure meant depl
 architecture but gives scalability issues.
 
 Microservice Architecture is kind of loose architecture which helps in scalibility and flexibility. And easy to maintain. 
+if you want to create different components , like payment one in c++ , other component in java , this can be done here.
+in monolithic architecture , this can be done in very rarest cases and is very hard to implement.
+like java can be used to call c++ , but it is hard to implement.
 
 7)Queue
 It is used for handling traffic spikes.“Queues are used to decouple components, absorb traffic spikes, and ensure reliable asynchronous processing.”
