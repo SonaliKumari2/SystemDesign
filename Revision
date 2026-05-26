@@ -523,16 +523,204 @@ Importance of Solid principles
 used for scalibility , maintainability , testability , readability
 
 8
+
 8.1
-Gateway
-8.2
-Proxy Server
-8.3
+8.1.1
+Proxy
+Proxy is a machine or a set of machines that sits in-between two systems.
+two systems :- two services or a user and a system.
+
+Proxy Servers are installed to abstract out the complexities or untrusted environment.
+
+8.1.2
+(i)Forward Proxy
+   Forward Proxy abstracts out the client by actings as a middleman.
+  -> request goes to either interent/untrusted network or some machines , platforms, services,etc.
+
+(ii) Why we need Forward Proxy ?
+   -> Security :- protects the client's identity. external rules sees proxy's ip 
+   -> policies :- restrict access to certain website or tools. educational institutions and corporate
+                  do this.
+   -> Caching :- some frequently accessed content 
+
+8.1.3
+(i)
 Reverse Proxy
-8.4
-Load balancer
-8.5
-consistent hashing
+Reverse Proxy abstracts out the complexity of downstream systems.
+(so like the user does not need to know about the number of servers , complexity of servers and all so)
+
+(ii)
+Why do we need Reverse Proxy ?
+-> Load Balancing across set of API servers or DB servers
+-> Routing the incoming request to appropriate service or servers
+-> Caching static responses avoiding the need to request downstream systems
+-> Abstraction of infra elasticity (autoscaling) and becoming single point of contact
+
+(iii)
+(for example :-) Load Balancer , API Gateways , and DB Proxies , Nginx , HAProxy , Kong Gateway ,
+and ProxySQL
+Database proxy can :- cache responses
+                      pool connections to databases
+                      abstracts out database complexity (helps in elasticity)
+
+9
+What happens when we hit URL in browser ?
+
+(i)
+https://www.google.com/api/search?q=home
+(scheme,domain,path,optional key-value pair(any metadata))
+
+domain :- human readable way to know what we are interested in
+q=home :- optional key-value pairs use can pass to additional optional info in the request.
+
+(ii)
+DNS resolution :-
+the process of converting domain name to ip address.
+
+DNS lookup :-
+means when you query about the infomation.
+
+(iii)
+TCP connection is established with the ip address. 
+
+(iv)
+Once TCP connection is established , it sends the get rest api request to the server .
+http is a protocol here.
+
+(v)
+Server processes the request , once the server receives the HTTP request , it parses the above
+message and understand what needs to be done.
+Server may just load the file from local disk ad serve , it may make call to database to get response.
+it may throw error if malformed.
+it compiles a proper HTTP response and respond back over same TCP connection (html,text,JSON,etc)
+
+(vi) 
+Browser upon receiving the response , parses the message , extracts the info and "renders".
+       http/1.1 OK -> status code
+       content-type : text/html - type
+       content-length : 2092 - length
+       <html><head>  - body
+and html or file is shown on browser.
+
+10
+Database Sharding and Partitioning
+
+-> vertically scaling (scale up)
+-> read relicas
+-> horizontally scaling (scale out) -> sharding and partitioning
+          shard -> database level
+          partition -> data level
+    Each database server is thus a shard
+    and we say that data is partitioned.
+    Overall , a database is sharded while the data is partitioned.
+
+   100 gb -> 30 gb , 10 gb , 30gb , 20gb , 10gb (database partitioning)
+    these partitions can be put in 2 shards.           (database sharding)
+
+How to partition the data ?
+    -> horizontal partitioning (operates at row level)
+    -> vertical partitioning (operates at column level)
+
+logical partitioning -> means one database server , but many partitions for a particular data present there.
+sharding but not partitiong -> replica sets
+
+Advantages of Sharding :-
+    -> Handle large reads and writes.
+    -> Increase overall storage capacity
+    -> Higher availability
+
+Disadvantages of Sharding :-
+     -> Operationally complex
+     -> Cross-Shared queries expensive. => make sure that the data is divided such that query is 
+                                           answered from one shard.
+
+
+11
+How to indexes make databases read faster ?
+
+-> Disk , let's suppose , divided into blocks of 600 bytes . So, one disk read = one block read(600 bytes)
+   Even if we read one byte , it will read the entire block that contains the byte. 
+  
+-> database is a collection of records , total 100 records each of 200 bytes.
+   and 3 rows can fit in 1 block because 600/200=3
+   so, total blocks required = 100/3 =33.3 ~ 34 blocks
+
+-> Flow :-
+         iterate table row by row :- block by block
+         read the block in memory 
+         check age==23 on each record
+         if yes, add the record to an output buffer
+         if no,discard
+         return the output buffer
+    time taken to answer this query is same as time taken to read the blocks
+         so, 34 blocks =34 seconds.
+
+-> now , having (age,id) => as index , ordered by the indexed value
+   each entry in the index 4byte + 4 byte = 8 bytes .
+   There will be 100 entries in the index , so total size of index will be 8*100=800 bytes.
+   so, index will require only 2 blocks on the disk.
+   total number of blocks read here = 2(index) + 2(record) -> 4 blocks
+
+-> time taken without index = 32 seconds
+   time taken with index = 4 seconds
+
+-> Multi-level indexing (for B and B+ trees)
+   Why databases use B+ trees to hold data ?
+
+   SQL databases are known to use B+ trees to hold the data.
+   # even non-relational databases leverage them to store data.
+
+   Say our table/records are stored in one file sequentially.
+   takes O(n) time.
+
+   Every B+ tree node is serialized and stored on disk.
+   Non-leaf nodes hold routing information.
+   stores the data in leaf node.
+
+12
+How to safely and gracefully handle timeouts in a microservices ?
+
+When two services are talking to each other , for example : search and analytics service :-  
+  -> Analytics Service never got the request
+  -> Response from the Analytics team never reached the Search Service
+  -> Analytics Service is taking too long to process.
+  -> So, one service should not wait for another service for infinite amount of time. There should be
+     timeout for this.
+
+-> How to handle timeouts ?
+   ->  approach 1 :- ignore (not recommended)
+       we assume operation succeeded -> leads to unpredictable UX but it actually failed.
+
+        good practice :- catch all exceptions.. everytime
+                  and then take an informed called depending on the context.
+
+   -> approach 2 :- configure and use defaults
+        upon timeout , you may choose to use a default value 
+        use default , total_blogs =0
+
+  -> approach 3 :- Retry
+        Assume that the remote operation failed , and retry.
+        Retries are simple when it is a "read request" , But , sometimes , situation becomes tricky. 
+                 (i) request is non-idempotent
+                 (ii) request is expensive
+                 (iii) other service is overloaded
+         (for example :-) moving money from A to B.
+
+
+13
+Write-ahead logging
+
+-> Reliability is very important for MySQL , PostgreSQL
+-> Disk writes are complicated :-
+        RAM -> OS Cache -> Disk Cache -> Disk
+-> first of all , the changes should be written in the log file , then it should be committed.
+-> Advantages of WAL :-
+       -> We do not need to flush the data changes on every commit.
+       -> In case of crash , we can recover by replaying the logs.
+       -> Reduce the number of disk writes.
+(flush frequency)
+       -> can also be used in point-in-time recovery
+
 
 
 
