@@ -510,9 +510,18 @@ SOLID -> single responsibility => every class should have one job or one purpose
          dependency inversion principle => classes should depend upon abstract classes or interface , instead
                                            of depending upon concrete implementations.
 
+for better testing => dependency inversion principle preferred.
+
 DRY -> Don't repeat yourself
+       avoid duplicating code to reduce redundancy => minimizes the chances of errors => promotes efficiency
+       use functions or methods , using oops
 KISS -> keep it simple stupid
+        to avoid overcomplication(in terms of design or implementation)
+        (make the code simple for everyone , not just for you ) like instead of using variables x,y
+       use correct variables.
 YAGNI -> You aren't gonna need it
+          like don't think too much about the future while writing the code.
+          think about the future but not too much.
 
 7.2
 Importance of Solid principles
