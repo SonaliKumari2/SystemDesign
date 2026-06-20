@@ -1,1 +1,47 @@
+Design a Food Delivery Application (Zomato/Swiggy/Uber Eats)
+Design a platform that allows users to search restaurants and order food online from there.
+
+1
+Gathering of the requirements
+
+main three parts :- user , delivery partners , restaurant
+                    give the order , helps in delivery of food , accepts the order
+so , ask interviewee which part to explore
+
+Functional Requirements :-
+-> User should be able to register into our application.
+-> List down all the nearby restaurants based on user location.
+-> User should able to search restaurants based on title and menu.
+-> Show all the menus in the display of the restaurants.
+-> User should be able to select various item(s) in the cart and make the payment to confirm order from nearest restaurant.
+-> Once the restaurant accept , find nearby delivery partner based on driver location , optimised delivery time.
+-> Once the delivery partner pick up the order , give almost real time location of delivery partner to user.
+-> User should get notification on all stages and get past orders in the profile.
+
+Non-functional Requirements :-
+-> Scale :- 50M users and 1M restaurants
+-> CAP theorem :- Application should be highly available based on searching and our application should be highly
+                  consistent based on paymnents and order of food from restaurant.
+
+2
+Identification of the Core entity
+
+  -> User
+  -> Restaurants
+  -> Food Menu
+  -> Delivery Agent / Partners
+  -> Payment
+
+3
+API Designing
+
+-> POST : /v1/user/register {PostBody : userMetaData} + (login/logout/update)
+-> GET : /v1/restaurants/nearby?lat={lat}&long={long}&rad={rad} -> List<RestaurantId (Partial) > : Pagination
+-> GET : /v1/restaurants/search?title={title}&menuItem={item} -> List<RestaurantId (Partial) > : Pagination
+-> GET : /v1/restaurants/{restId} -> Restaurant Metadata
+-> GET : /v1/restaurants/{restId}/menu -> List of fooditems available
+-> 
+
+
+
 
