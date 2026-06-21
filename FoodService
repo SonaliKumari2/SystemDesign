@@ -40,8 +40,93 @@ API Designing
 -> GET : /v1/restaurants/search?title={title}&menuItem={item} -> List<RestaurantId (Partial) > : Pagination
 -> GET : /v1/restaurants/{restId} -> Restaurant Metadata
 -> GET : /v1/restaurants/{restId}/menu -> List of fooditems available
--> 
+-> POST : /v1/cart/items {PostBody : itemId + qty + userId + restId} + (update/delete) : returns cartId 
+-> POST : /v1/orders {PostBody : orderId } : return orderId
+-> POST : /v1/payment {PostBody : paymentMetaData + orderId } : returns paymentId
+-> GET : /v1/delivery/{orderId}/tracking
 
+4
+High Level Designing
+
+users -> load balancer + api gateway  -> user service -> user database
+                                      -> search service -> rest db  <-  restaurant service <- load balancer + api gateway <- restaurants
+                                      -> cart service -> cart db                                      |
+                                      -> order service  -> order db  -> order service -----------------
+                                           |-> payment gateway     
+                                      -> delivery matching service -> driver db 
+                                                       |                |
+                                                      location update service
+                                                              |
+                                                         load balancer + gateway
+                                                                |
+                                                     users  <- drivers
+                                                              
+
+        -> authentication and authorization
+        -> rate limiting
+        -> routing
+        -> load balancing using round robin
+
+5
+Low Level Designing
+discussing about the schema of the database , and how actually the functionality is implemented.
+
+UserDB
+-> userId , -> email , -> password , -> address , -> metadata
+
+SearchService
+-> to search on the basis of restaurant or menu
+elastic search can be used to search relevant restaurants on the basis of title and location.
+reather than QuadTree or Postgres
+
+all the images of restaurant and it's menu will be stored in s3 .
+
+CartDB (PostGres) -> cartId , restId , userId , List<ItemID> , ...metadata
+
+order service -> entire checkout process
+
+PaymentDB (mysql) -> paymentId , userId , orderId , amount , currency , timstamp , ...metadata
+
+what is the difference between postgreSQL and mysql ?
+answer :- both are relational databases
+          postgresql -> compliant , stable and most mature database
+                        very good with complex queires
+                        advanced object-relational database , but mysql has traditional relational database , columns can be stored in more complex structures.
+
+           MVCC -> multi version concurrency control
+                     means the database keeps multiple versions of rows so readers can access old committed data
+                     while writers create new versions , reducing locks and improving concurrency
+                     it is cleaned by using vacuum in postresql.
+                     done by using both postgresql and mysql.
+                     in mysql -> old versions are reconstructed using undo logs.
+                     but , in postgresql , the different versions are stored directly.
+
+now, order service -> event-driven -> put it's order into kafka
+
+-> 1st  place order , put it in orderDB
+-> 2nd  notification service , notifying user , order is placed
+-> 3rd  restaurant service -> trigger notification to order service -> restaurant accept it -> notified to the order service
+        once , order acknowledged ->  put that order in kafka 
+        now , -> 1st user is notified that order is placed -> call notification service (orderStatus :- order is placed)
+              -> 2nd delivery partners assigned 
+
+orderDB (PostGres)
+-> orderId     -> List<ItemID>   -> time
+-> userId      -> price          -> ..metadata
+-> resId       -> currency       -> driverId
+
+delivery matching service
+   -> read unserved orders
+
+delivery partner assigend -> put event in kafka -> changeOrderStatus , add driveId to orderDB
+orderConsumers will read that event from kafka.
+
+delivery matching service -> uses geoHashService (proximity search) to find nearest driver
+
+every 10 seconds , driver send notification -> so driver's live location will be tracked.
+but complex , thousands of drivers , tremendous requests get hint into location update service.
+so , introducting kafka gateway , so event updated to kafka
+kafka event -> instead of directly updating driverDB -> update redis (TTL :- for offline driver) 
 
 
 
