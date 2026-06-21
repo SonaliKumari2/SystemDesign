@@ -126,7 +126,31 @@ delivery matching service -> uses geoHashService (proximity search) to find near
 every 10 seconds , driver send notification -> so driver's live location will be tracked.
 but complex , thousands of drivers , tremendous requests get hint into location update service.
 so , introducting kafka gateway , so event updated to kafka
-kafka event -> instead of directly updating driverDB -> update redis (TTL :- for offline driver) 
+kafka event -> instead of directly updating driverDB -> update redis (TTL :- for offline driver) -> less latency while updating redis
+
+6
+Types of association -> aggregation , composition
+
+assocition depicts the relationship between two classes. 
+aggregation -> weak association , composition -> strong association
+
+weak -> means one object can exist without another object
+(for example :-) driver and car can exist without each other.
+public class Driver{
+    private Car car;
+}
+
+strong -> means one object can't exist without another object
+(for example :-) car has engine
+                 but engine can't exist without car
+
+
+
+
+
+
+
+
 
 
 
