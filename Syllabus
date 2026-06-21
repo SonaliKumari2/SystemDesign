@@ -1,0 +1,57 @@
+1
+UML for Placements (Important)
+-> Class Diagram
+-> Association
+-> Aggregation (weak has-a)
+-> Composition (strong has-a)
+-> Inheritance (is-a)
+-> Multiplicity (1-1 , 1-many , many-many)
+
+2
+-> OOPs
+-> Solid Principles
+
+3
+-> small code skeleton + basic example where to use + it's UML
+strategy pattern 
+factory pattern
+observer pattern 
+skeleton pattern
+
+4
+-> Examples to cover
+Tictactoe
+Parking Lot
+Library
+Snake and Ladder
+Splitwise
+BookMyShow
+Elevator
+Vending Machine
+
+1. Clarify requirements
+2. Identify entities
+3. Define relationships
+4. Create classes
+5. Assign responsibilities
+6. Think about future extensions
+7. Apply patterns if useful
+8. Discuss edge cases
+
+5
+-> Load Balancer , Cache , SQL vs NoSQL , Scaling , Replication
+-> Practise :- URL Shortener , Whatsapp , Instagram , BookMyShow , YouTube
+
+1. Clarify requirements
+2. Estimate scale
+3. Identify services
+4. Draw architecture
+5. Explain request flow
+6. Choose database
+7. Add cache
+8. Add load balancer
+9. Discuss bottlenecks
+10. Discuss edge cases
+
+
+
