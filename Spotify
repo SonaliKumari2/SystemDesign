@@ -99,6 +99,104 @@ bandwidth :- 5B * 10MB = 50 PB/day
 most of this traffic is served through a CDN.
 
 3
+Streaming Service
+-> where we will be storing (file system/blob)
+   what is blob storage ? blob stands for binary large object
+   a blob is simply a file , it could be an image , an MP3 song , a video , a PDF , a zip file.
+   so blob storage is a storage system designed to store large files , not structured records like a
+   database.
+   
+   drawbacks of storing songs in file system :-
+         -> scalibility :- disk space is limited. what happens if you hit 5000 GB ?
+         -> durability :- if disk/server crashes , files are lost
+         -> replication :- you'd need to manually replicate files to other disks or servers
+         -> latency :- serving files to users far from your server adds latency
+         -> backups :- no built-in versioning or backup mechanisms.
+         -> no cdn :- no caching , geo-replication , etc.
+   why blob storage rocks ?
+         -> massive scale :- store billion of objects , no size limit per object
+         -> highly durable :- 99.999999999% durability (11 9's) - your files are replicated
+         -> globally available :- integrated with CDNs (cloudfront/akamai) - fast 
+         -> versioning :- can store multiple versions of file
+         -> access control :- pre-signed URLs , role-based access
+         -> pay as you go :- only pay for what you store and serve
+         -> streaming support :- range requests , progressive delivery of audio chunks 
+
+     client -- (http request)(multipart/form-data) --> server -- (binary files as an object) --> s3 storage  -> also stored simulatenously in cdn
+                                                          |    <-- (url for audio track)  --
+                                                          |
+                                                    sql database  
+
+               audio files are sent in multipart/form-data.
+
+    now , if client wants to fetch one song , then first of all using apis , it will make request to the server , now , server has songId , using which first url will be
+    accessed from the sql database , and then that url will be returned to client , and then client , by using that url , will download the song from cdn directly.
+    now , server will sent pre-signed url to the client , and by using that pre-signed url , client can download song from the cdn.
+
+
+    client -- get song.mp3 --->  Server ------> S3 storage
+           <------------------    
+              songId
+
+   problem in this technique ,i.e.(i) Brute force (naive)
+                        as here , client is downloading the chunks sequentially from the blob storage.
+                        what if , user wants to skip some part of the song , in this technique , it can't be done , because it may be possible that , that particular chunk
+                        is not downloaded yet.
+        (ii) Range Requests :- Pull only what you need
+                   solves the problem faced by brute force (naive) , ie, if user is currently on 4th minute and wants to go to the 7the minutes.
+                   sends the byte range of what the user needs in http request.
+                   disadvantages :- in poor network area
+        (iii) Adaptive Bitrate Streaming (ABR) :- HLS/DASH
+                    ffmpeg -> it encodes one audio file to different versions.
+                    aac -> advanced audio coding -> format for audio compression.
+
+
+  song_96.aac (low) , song_160.aac (medium) , song_320.aac (high) ----------->  divided into segments , each segment is a binary audio file -> segment_000.aac ,
+                              |                                                                                                           segment_001.aac, segment_002.aac 
+                              |
+              client ---> server (ffmpeg)
+
+manifest files -> it manages the different segments of a song for each song version (like 96,160,320) so , 
+   in manifest format -> song_96.m3u8 , song_160.m3u8 , song_320.m3u8
+
+now, we are dividing file to different segments so that it will support jump/seek.
+
+different segments , versions and manifest files are stored in S3 storage. (in S3 storage , everything is stored as object.)
+
+each segment is a small binary audio file (object in S3). And we store each binary audio file as a seperate object in S3.
+In Blob Storage (like S3) , each file you upload is an "object". 
+
+so, in this technique , user clicks on play button , several segments from s3 using pre-signed url is stored in the client's storage.
+and from that storage , one by one sequentially , the segment runs.
+
+user clicks on pause button -> then the client stop requesting different segments from cdn and s3 storage.
+                               and also the segment's in client's memory remains as it is.
+user clicks on skip button -> all the segments present are flushed in buffer, and new segments and manifest_files are served ,
+                              depending upon the current network requirement.
+
+
+
+-> how we will be storing
+-> how we will be fetching
+-> how play/pause/seek/ will function
+
+Search Functionality :-
+we will be searcing a song , artist or playlist
+
+fuzzy searching , auto completion , elastic search cluster
+
+Recommendation Service :-
+on the basis of previous search , and what they have listened to previously.
+
+client -> search service      ->    kafka  -> recommendation system
+          streaming service   ->
+
+all the information of search service and streaming service will be sent to kafka.
+and , then kafka will sent the information to recommendation system.
+
+
+
+
 
 
                                                                  
