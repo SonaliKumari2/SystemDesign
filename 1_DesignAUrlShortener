@@ -265,5 +265,20 @@ now , the system is very read-heavy , it's like read is 100 times more than writ
 so , storage will be equal to 100 bytes (for long url) + 10 bytes (for short url) + 40 bytes (storage) , so total storage will be 150 bytes.
 
 for generating a unique short url , hashing can be used , by auto-incrementing the key , and then hashing it , which will always produce correct result.
+but , in a distributed system , a single auto-increment counter becomes a bottleneck.
+so, options include :-
+     global id service (snowflake-style IDs) -> no collisions
+     generate random string -> works but it may happen that randomness generates same string , when
+                               the database grows , collisions become more likely.
+      hashing -> take the first few characters , same url always produces same result
+                 only one entry is stored. This is called deduplication.
+                  problem :- different urls can store the first same 6 characters.
+      
 Sharding , replication , can be done evenly.
 best shard key = short url . sharding is done by using  hashing technique.
+
+always shard by short code , not by creation time.
+short code :- simply the unique identifier after the /.
+https://tinyurl.com/aB9xK2 -> so short code is aB9xK2
+
+
