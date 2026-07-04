@@ -41,4 +41,8 @@ what happens if cache fails ? -> then serverd directly from the main database.
 
 Here , availability is more important than consistency. So, here eventual consistency, is preferred.
 
+System Design -> like same for instagram , linkedin , twitter
+
+
+
 
