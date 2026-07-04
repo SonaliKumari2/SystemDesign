@@ -9,3 +9,107 @@ focus on class diagrams
                             it indicates that instances of one class are connected to instances of another class.
       Generalization  ------|> (inheritance) 
 
+1
+Requirements
+
+Functional Requirements :-
+
+User should be able to search music , playlist and singer.
+Music Streaming (play , pause , seek , skip)
+Like , Share , follow artist and create playlist
+Music Recommendation
+Profile Management
+
+Non-functional Requirements :-
+
+Low Latency -> when user plays songs , it should take very low amount of time to play song
+High availability -> 99.99%
+Scalibility
+
+2
+Translate Functional Requirements into Services
+
+-> Profile Service
+-> Search Service
+-> Streaming Service (pause , play , seek)
+-> Recommendation Service
+-> User Operation Service (like , share , create Playlist)
+
+3
+Back of the envelope estimation
+
+population of world = 8 billion
+people with smarthphones = 6 billion
+music streaming users = 1 billion
+spotify is one of the largest music streaming platforms
+let's assume spotify has around 40-60% market share.
+monthly users = 500 million
+daily users are roughly half of monthly users = 250 million
+
+3.1 -> monthly active users
+
+(monthly active users)
+startup : 10K - 1M users
+growing product : 1M - 10 M users
+Large national product : 10M -100M users
+Global Internt service (Spotify , Netflix , Uber , Airbnb) : 100M - 1B users
+Massive Platforms (Google Search , Youtube , Whatsapp) : 1B+ users
+
+3.2 -> daily active users
+most consumer apps have a DAU/MAU ratio somewhere between 30% - 60%.
+
+3.3 -> peak concurrent users
+
+3.4 -> average user activity
+
+(for example:-) for spotify ,
+monthly active users :- 600 million users
+daily active users :- 40-50% -> 250 million users 
+peak concurrent users :- not all dau listen to music simultaneously.
+                         assume 2% of DAU are active at peak
+                         250M * 2% = 5 million users
+average user activity :- assume each active user listens to 20 songs/day
+                      song streaming requests :- 250M * 20 = 5 billion / day
+Requests per second :- (audio streaming) :- 5 billion / (86400) = 58,000 requests/second
+peak traffic :- 3*the average = 260,000 RPS
+
+spotify is predominantly a read-heavy system.
+reads include :- stream song , fetch playlist , search , recommendations , browse albums.
+writes include :- like a song , create playlist , follow artist , add/remove songs , listeneing history
+
+assume out of 100 , 95 read , 5 write
+
+metadata storage :-
+assume spotify stores 150 million songs
+each song metadata contains :- song title , artist , album , genre , duration , language
+assume metadata size : 2 KB / song
+total : 150M * 2 KB = 300 GB
+
+Audio storage :-
+average song : 4 minutes 
+approximate size :- 10 MB / song
+total storage :- 150M * 10MB = 1.5 PB
+
+spotify sotres multiple audio qualities (96kbps, 160kbps,320kbps), so estimate:- 4-5 PB
+
+Daily bandwidth :-
+daily streams :- 5 billion
+average song size :- 10 MB
+bandwidth :- 5B * 10MB = 50 PB/day
+most of this traffic is served through a CDN.
+
+3
+
+
+                                                                 
+
+
+
+
+
+
+
+
+
+
+
