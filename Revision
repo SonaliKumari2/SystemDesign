@@ -1,4 +1,7 @@
-
+For high level design , requirements -> functional and non functional , back of the envelope estimation
+                        high level apis
+                        high level overview , deep dive if you want to 
+                        class diagrams (very important)
 1
 Problem Statement :- Design a URL shortener service like bit.ly
 
