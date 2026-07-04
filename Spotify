@@ -194,6 +194,82 @@ client -> search service      ->    kafka  -> recommendation system
 all the information of search service and streaming service will be sent to kafka.
 and , then kafka will sent the information to recommendation system.
 
+Class diagram of spotify :-
+
+-> identify the functional requirements
+   user can register/login.
+   user can search songs.
+   user can play songs
+   user can create playlists
+   user can like songs
+   user can follow artists.
+   preminum users can download songs.
+
+  now , extract the nouns.
+  user , song , artist , album , playlist , subscription , search
+  these are my candidte classes
+
+-> Find the core entities
+   user , song , artist , album ,playlist
+
+-> think about replationships
+   one artist has many songs  , artist 1 <-> * song
+   one album contains many songs , album 1 <-> * song
+   one user creates many playlists , user 1 <-> * playlist
+   one playlist contains many songs , playlist * <-> * songs
+   one user likes many songs , user * <-> * song
+
+note :- if i change this relationship to one-to-many , what feature stops working ?
+        artist <-> song , ignoring collaborations.
+        playlist <-> song , one song can be in only one playlist , spotify becomes unusable.
+        user <-> song , one song can be liked by only one user , spotify becomes unusable 
+
+-> add important attributes
+      User :- userId , name , email , subscription , playlists , likedSongs
+      Song :- songId , title , duration , genre , bitrate (96,160,320 kbps), audioUrl
+      artist :- artistId , name , followers
+      album :- albumId , title , releaseDate
+      playlist :- playlistId , name , songs , owner
+
+-> add Behaviors
+   a class isn't just data , it also should contain functions.
+
+   user -> playSong() , likeSong() , createPlaylist() , followArtist() 
+   playlist -> addSong() , removeSong() , shuffle() 
+   player -> play() , puase() , next(), previous() , seek() , changeQuality()
+
+so, user create Playlist
+    Playlist has many songs
+    and each song , has artist and belongs to an album
+
+Aggregation :- 
+playlist <>--- song  : playlist contains songs
+if you delete ur playlist , then song also gets deleted ? no
+so , they can exist independently
+
+Composition :-  (black diamond)
+is like strong ownership
+the child can't exist without the parent.
+playlist contais playlistitems 
+now , if playlist is deleted , playListItems will also be removed
+
+suppose , user <>-- subscription
+suppose if the user account is deleted , subscription also disappears.
+
+susbscription <--- premium subscription
+              <--- FreeSubscription
+
+
+association :- three types
+               simple association , aggregation , composition
+
+Teacher teaches student , this is simple association (here , no ownership , just a relationship)
+Library has books , this is aggregation (has-a relationship) (has-a relationship , weak ownership)
+composition (has-a relationship , strong ownership) 
+
+   
+  
+
 
 
 
