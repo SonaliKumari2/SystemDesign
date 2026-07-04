@@ -1,0 +1,11 @@
+focus on class diagrams 
+
+1. structure :-  name , attributes , operations
+2. + : for public , - : private , # : protected , ~ : default
+3. Relationship between classes 
+      Composition  ---<> (color filled in) (here , child class can't exist independently of the parent class)
+      Aggregation  ---<> the child can exist indenpdently of it's parent class (type of association)
+      Association  -------  represents a bi-directional relationship between two classes.
+                            it indicates that instances of one class are connected to instances of another class.
+      Generalization  ------|> (inheritance) 
+
