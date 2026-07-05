@@ -7,3 +7,61 @@ Difference between Twitter Timeline System and Instagram feed System.
 
 “Twitter and Instagram feeds differ mainly in their goals. Twitter focuses on real-time, chronological content, so it uses fan-out on write to precompute timelines and optimize read latency. Instagram, on the other hand, prioritizes engagement and discovery, so its feed is ML-ranked, not time-based. Instagram performs candidate generation, ranking using user interaction signals, and heavy media delivery via CDNs. As a result, Instagram’s read path is more compute-intensive,
 while Twitter’s read path is simpler and faster.”
+
+Design Twitter :-
+
+1
+Back of the evenlope estimation :-
+
+MAU :- 1 billion
+DAU :- 70-80% are daily active , so 700 million users
+User Actions :- when someone opens twitter ,
+                     open app 8-20 times/day
+                     refresh feed multiple times
+                     open tweets
+                     open comments
+                     search
+                     like tweets
+                     retweet
+                     follow users
+              only considering the feed refresh requests , 10 request per day.
+              but all api requests , 50-200 requests/day.
+              700 million users * 10 feed refreshes = 7 billion requests / day 
+             
+RPS (Requests per second) :- 80,000 RPS
+Peak RPS :- 3*average = 240,000 RPS
+
+twitter is read-heavy because users mostly consume content.
+out of 100 requests , read is 95 , write is 5.
+
+so, now for optimizing the reads , we will be required :-
+cdn , redis cache , read replicas , timeline cache
+
+2
+Functional Requirements :-
+    -> follow others
+    -> create tweets
+    -> view feed
+   here , we are considering only those feeds of users whom we are following in view feeds : clarify this with your interviewer.
+
+Non-functional Requirements :-
+    -> scalibility
+    -> fault tolerance
+    -> low latency
+    -> durability
+
+3
+High Level Architecture 
+    Client -> Load balancer -> API gateway -> api servers -> cache -> relational database (for storing followers and followee)
+                                                                      graph database (for storing relationships between followers and followee)
+                                                                      object storage (for videos , images) -> and these assets (videos , images) can be served over CDN
+
+
+                       
+                                                             
+                                                              
+
+
+
+
+
