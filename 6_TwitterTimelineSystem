@@ -85,7 +85,7 @@ Read Optimization (user opens home timeline)
 
 Write Optimization (User posts a tweet)
 
--> sharding tweet database
+-> sharding tweet database : reducing latency
    store tweets across multiple database servers
 
 -> tweet api -> store tweet -> kafka -> return success
