@@ -56,6 +56,67 @@ High Level Architecture
                                                                       graph database (for storing relationships between followers and followee)
                                                                       object storage (for videos , images) -> and these assets (videos , images) can be served over CDN
 
+4
+read :- user opens home timeline
+write :- user posts tweet
+
+Read Optimization (user opens home timeline)
+-> timeline cache (redis)
+   store each users latest timeline in redis
+   reading from redis takes a few milliseconds instead of querying the database.
+
+-> tweet cache
+   timeline stores only tweet IDs.
+   actual tweet content is cached separtely in Redis.
+
+-> if cache misses occur , read from database replicas instead of the primary database
+   distributes read load.
+
+-> pagination :- return only 20-50 tweets at a time.
+                 load more when the user scrolls.
+
+-> cursor-based pagination :- instead of offset 1000
+                              use after TweetID = 98765
+                              much faster
+
+-> cdn for images/videos :- tweet contains media
+                            don't fetch images from twitter servers
+                            server them through cdn
+
+Write Optimization (User posts a tweet)
+
+-> sharding tweet database
+   store tweets across multiple database servers
+
+-> tweet api -> store tweet -> kafka -> return success
+   don't update millions of timelines synchronously.
+
+-> fanout on write (normal users)
+   if alice has 500 followers , each followers' redis timeline is updated
+
+-> fanout on read (celebrities)
+   suppose a celebrity has 100M followers.
+   dont' update 100M timelines.
+   instead , store tweet -> done.
+
+   when user opens twitter -> merge celeberity tweets -> return feed.
+   save millions of writes
+
+-> batch writes
+   instead of write user1 , user2 , user3 , write user4.
+   batch them and write user1 , user2 , user3 
+
+-> skip inactive users 
+   don't push tweets to users who haven't opened twitter in months.
+   generate their timeline only when they come back.
+   this reduces unnecessary writes.
+
+
+
+
+
+
+
 
                        
                                                              
