@@ -103,6 +103,62 @@ Even if something fails , video might load slightly slower. Lower quality may be
 Availability = replication + load balancing + fallback
 
 
+Revision
+
+Design youtube
+
+1
+Requirements
+
+Functional requirements 
+   -> users can watch videos
+   -> users can upload videos
+   -> users can like , share , comment (analytics)
+   -> recommendation system
+   -> users can search
+
+Non-Functional requirements
+    -> scalibility
+    -> low latency
+    -> availability (availability>consistency)
+    -> durability , reliability
+
+2
+Back of the envelope estimation
+
+monthly active users = 1 billion
+daily active uses = 70% of monthly active users = 70 million
+rps = (70 million)/(24*60*60)= (70 000 000)/ 1 00 000 ~   700 request per second
+and when traffic , then 3*rps = 2100 requests per second
+
+3
+High level architecture
+user -> load balancer -> app server -> object storage , metadata -> queue -> encoding -> object store (encoded)
+                                                                                      (encoding minimum takes 1 minute or more than one minute)
+                                                                                      (so, if 500 videos are getting uploaded per second , then more than 500 workers will
+                                                                                       be required to reduce latency)
+    
+
+-> uploading a video
+   upload (title , description , video , userId)
+   -> storing videos in S3
+   -> storing metadata in NoSQL database
+
+   let's suppose some creator changes it's profile picture , then we can update that pic asynchronously.
+
+-> watching a video
+   minimum latency , so add caching (lru cache)
+   use cdn (server static files geographically)
+   fetch metadata from nosql cache , if present , extract the video from cdn.
+   instead of sending the whole video , uploading the video to user in chunks.
+   favour udp for live streaming , but for streaming , where the video is stored , tcp
+   
+
+
+   
+ 
+
+
 
 
 
