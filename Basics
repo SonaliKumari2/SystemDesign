@@ -55,5 +55,44 @@ to solve this problem , virtual nodes can be used.
 14) Elastic Search
 instead of scanning the row one by one , it uses inverted index to efficiently find the rows.
 
+15) 
+15.1
+Cache Aside Pattern
+
+instead of accessing the database directly , first cache is accessed , then the corresponding query is stored in cache.
+very important factor :- to determine expiration time
+
+15.2
+Read through
+reading from cache , and if not present , reading from main memory
+
+15.3
+Write through
+change in both cache and main memory (here , data is more consistent)
+
+15.4
+Write Back
+only data is changed in cache , then after a while , data is changed in main memory (dirty bit ->0,1 tells whether the value needs to be changed or not)
+
+15.5
+Cache Eviction - LRU , LFU
+to evict the data from cache
+
+LRU (least recently used cache :- data is deleted which is not used for long amount of time)
+LFU (least frequently used ) :- if data is used very least frequently , then remove it.
+
+# Redis stores data in RAM(memory) instead of disk.
+
+15.6
+Memcached vs Redis
+memcached -> store strings only , slightly faster for simple key-value caching
+redis -> can store strings , list , hashses , soretd sets 
+
+16)
+Load Balancer
+
+
+
+
 
 
