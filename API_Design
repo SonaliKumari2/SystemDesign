@@ -1,0 +1,85 @@
+Production level APIs
+
+-> Dev First Approach
+-> Contract Driven API Development
+   first of all , design a contract and clarify the requirements
+           /todos
+                -> GET :-
+                         DESC :- Returns all the todos
+                         response type :- JSON
+                         response structure {todos:Todo[]}
+
+                -> POST :-
+                         Desc :- Create a new TODO
+                         Request Body :- {title:String}
+                         Response structure :- {status : 201}
+
+    then , the contract can be implemented in Express , HTTP , FastAPI , Go , Flask
+
+OPEN-API driven API design -> API descrition format for REST APIs
+
+fastAPI -> creates documentation on it's own
+           so that we can document , at the same time , create API
+           /docs , /openapi.json
+
+but , in js we need to create it manually.
+but , we can do it by using trpc.
+
+
+Basics about API which can be referred :-
+
+
+API
+• API = Medium through which Client and Server communicate.
+
+REST
+• REST = Standard for designing APIs.
+• Resource-based URLs (/users, /products).
+• Stateless → Every request is independent.
+• Uses HTTP methods.
+
+HTTP Methods
+• GET → Read data.
+• POST → Create data.
+• PUT → Update entire resource.
+• PATCH → Update specific fields.
+• DELETE → Delete resource.
+
+CRUD
+• Create → POST
+• Read → GET
+• Update → PUT/PATCH
+• Delete → DELETE
+
+HTTP Status Codes
+• 200 → OK
+• 201 → Created
+• 204 → No Content
+• 400 → Bad Request
+• 401 → Unauthorized (Not Authenticated)
+• 403 → Forbidden (Authenticated but No Permission)
+• 404 → Not Found
+• 500 → Internal Server Error
+
+Authentication vs Authorization
+• Authentication → Who are you?
+• Authorization → What are you allowed to do?
+
+JWT (JSON Web Token)
+• Stateless authentication.
+• Client stores JWT; sends it with every request.
+• Server verifies token.
+• Structure → Header + Payload + Signature.
+• Best for APIs, Mobile Apps, Microservices.
+
+Session
+• Stateful authentication.
+• Server stores session; client stores Session ID (Cookie).
+• Server checks session on every request.
+• Best for Traditional Web Apps.
+
+JWT vs Session
+• JWT → Stateless, Scalable, No server storage.
+• Session → Stateful, Easy logout, Requires server storage.
+
+
