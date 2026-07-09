@@ -89,7 +89,122 @@ memcached -> store strings only , slightly faster for simple key-value caching
 redis -> can store strings , list , hashses , soretd sets 
 
 16)
-Load Balancer
+Sticky Session Load Balancing
+what do you mean by "session affinity" ?
+stickness of user's session to a particular server.
+goal :- 
+How Sticky Sessions work ?
+
+-> cookies
+-> ip hashing
+-> session id 
+
+Benefits of Sticky Sessions
+
+-> session continuity
+-> simplified session management
+-> improved user experience
+
+Challenges of Sticky Session
+-> scalibility
+-> server failures
+-> state management
+
+alternatives to sticky sessions
+-> session replication (all sessions are present to all servers , but increases complexity)
+-> distributed session stores
+
+15.7
+Forward Proxy vs Reverse Proxy vs Load Balancing
+
+Forward Proxy
+-> Hides the identity of client
+-> Access Control :-
+   Block access to certain websites or restrict internet usage within a company.
+
+-> Security :-
+   Scan for any viruses and block
+
+-> Monitoring :-
+   In theory , it could log employees' web activity
+
+
+Reverse Proxy sits on the server side
+Also acts as an intermediary for request from clients , but it primarily serves the server, sitting
+in front of one or more web servers
+
+Handles incoming client requests and forwards them to the appropriate servers.
+
+Key functionalities of a Reverse Proxy :-
+-> Hides the identity of server , that which server is serving the client's request.
+
+-> Load Balancing
+   Distributing incoming traffic across multiple backend servers to balance the load.
+
+-> Filter requests for malicious activity before they reach the server.
+
+-> Ensure SSL encryption enabled.
+-> Caching content to reduce the load on backend servers and speed up content delivery to clients.
+
+(for example:-) NGINX
+
+user -> AWS Load Balancer (Public Subnet) -> Reverse Proxy (Private Subnet) -> App Servers
+encapsulating proxy and backend servers into a private network.
+
+-> more secure and more scalable
+
+still  why to lad balance twice ?
+allows for more granular , flexible routing rules.
+so, more intelligent routing possible.
+
+cloud load balancer distribute on certain algorithms , often opereating on layer 4 = transport
+layer based on IP and port.
+
+in load balancing , two techniques :-
+round robin :-
+   the incoming requests keeps rotating.
+   so, equal distribution.
+   works well when every request takes roughly the same amount of time.
+
+least connections :-
+    instead of rotating , the load balancer checks :-
+       "which server currently has the fewest active connections?"
+
+health checks :-
+   the load balancer periodically checks whether each backend server is healthy
+
+but , instead of sticky sessions , the more appropriate approach is :-
+shared session store.
+modern scalable systems typically avoid relying on sticky sessions. Instead , they store session 
+data in a shared session store (e.g, Redis or a database), allowing any backend server to handle any
+request.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
