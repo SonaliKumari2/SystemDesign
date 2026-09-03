@@ -224,6 +224,16 @@ class Inventory {
     }
 }
 
+Vending Machine <>--- Slot (Composition)  filled with black diamond  
+Vending Machine <>--- Product     (Aggregation) 
+Slot ----- Product    , Slot is associated with a Product
+
+2
+Parking Lot
+
+
+
+
 
 
 
