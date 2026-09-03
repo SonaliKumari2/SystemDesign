@@ -1,0 +1,189 @@
+Beginner :-
+
+Parking Lot
+Vending Machine
+Library Management System
+ATM
+Tic-Tac-Toe
+Snake and Ladder
+Deck of Cards
+Coffee Machine
+Car Rental System
+Movie Ticket Booking
+
+1.
+First clarify the requirements
+Before writing any class, ask questions.
+
+For a vending machine :-
+
+Products
+ What types of products can it sell?
+ Does every product have a different price?
+ Can multiple products have the same type?
+ Do products have an expiry date?
+
+Inventory
+    How many products can each slot hold?
+    What happens when a product is out of stock?
+    Can an administrator refill the machine?
+
+Payment
+    What payment methods are supported? :- Cash? Card? UPI?
+    Can the user insert money in multiple steps?
+    Can the machine return change?
+    What happens if insufficient money is inserted?
+
+Transaction
+     Can the user cancel?
+     Should inserted money be refunded?
+     What happens if the machine runs out of change?
+     What happens if dispensing fails?
+
+Admin
+    Do we need an admin interface?
+    Can an admin add/remove products?
+    Can an admin collect money?
+
+For an interview, you could say :-
+
+I'll assume the machine supports multiple products, cash payment, inventory management, 
+cancellation, and change return.
+I'll keep card/UPI and admin operations extensible but won't implement them unless required.
+
+2
+Identify the main entities
+Now extract the nouns from the requirements.
+
+VendingMachine
+Product
+Slot
+Inventory
+Payment
+Transaction
+
+What responsibility belongs to each?
+
+For example :-
+   Product :- id , name , price
+   Slot :- slotId , product , quantity
+   Inventory :- Collections of slots
+   VendingMachine :-  Inventory , PaymentProcessor , PaymentProcessor
+
+3
+Identify the machine's states (if applicable)
+This is very important for Vending Machine.
+
+Think about what the machine is doing.
+IDLE -> PRODUCT_SELECTED -> PAYMENT_PENDING -> DISPENSING -> IDLE
+
+And there can be :-
+PAYMENT_PENDING ->  CANCEL -> REFUND -> IDLE
+
+The State Pattern might be useful.
+
+The machine's behavior changes significantly depending on its current state, so I'll model 
+the states explicitly.
+
+4
+Identify Responsibilities
+
+Don't make one giant class:
+  Instead think :-
+      VendingMachine :- Inventory , PaymentProcessor , ProductDispenser , State
+
+Inventory
+   Responsible for :- 
+         isAvailable() , getProduct() , removeProduct() , addProduct()
+
+PaymentProcessor
+    Responsible for :-
+          acceptPayment() , calculateChange() , refund()
+
+Dispenser
+    Responsible for :- dispenseProduct()
+
+VendingMachine
+     Coordinates everything. That's separation of responsibility.
+
+Data Structure can be decided like , 
+
+(i)
+Suppose the machine has slots : A1 → Coke → 5 , A2 → Pepsi → 3 , B1 → Chips → 7
+Map<String, Slot> slots;
+
+(ii)
+For change-making, you might maintain : Map<Coin, Integer> coins;
+
+Decide where interfaces are useful :-
+
+Suppose initially you only support cash.
+You could do :-
+class CashPaymentProcessor {
+    ...
+}
+
+But tomorrow the interviewer says :- "Add card payment."
+You don't want to heavily modify your vending machine.
+
+interface PaymentProcessor {
+    PaymentResult processPayment(Money amount);
+    void refund();
+}
+
+Give a real life example :-
+"Walk me through what happens when I buy a Coke."
+
+User selects Coke -> Machine checks inventory -> Machine checks price -> Machine accepts payment
+-> Payment successful? -> Calculate change -> Dispense Coke -> Update inventory -> Return change
+-> Transaction complete
+
+
+Think about failure cases
+
+Ask :- 
+(i)
+Product unavailable
+User selects Coke -> No Coke -> Reject transaction
+
+(ii)
+Insufficient money
+Price = ₹50
+Inserted = ₹30 → Don't dispense → Keep transaction pending
+
+(iii) 
+User cancels
+₹50 inserted -> Cancel -> Refund ₹50 -> IDLE
+
+(iv)
+Machine doesn't have enough change
+Suppose :- Product = ₹30 , User inserts = ₹100
+If the machine can't return ₹70 → Don't dispense → Refund ₹100
+
+3
+Then draw your class design
+
+                    VendingMachine
+                           |
+       ┌───────────────────┼───────────────────┐
+       ↓                   ↓                   ↓
+   Inventory        PaymentProcessor         State
+       |                   |                   |
+      Slot          ┌──────┴──────┐       ┌────┴─────┐
+       |             ↓             ↓       ↓          ↓
+    Product      CashPayment   CardPayment Idle    Dispensing
+
+Slot : slotId , Product , quantity
+Product : id , name , price
+
+4
+Write the important APIs
+
+
+
+
+
+
+
+
+
