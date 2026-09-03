@@ -179,6 +179,53 @@ Product : id , name , price
 4
 Write the important APIs
 
+(For example :-)
+
+class VendingMachine{
+     private Map<String, Slot> slots;
+     private Money currentBalance;
+     private VendingMachineState state;
+
+     public void selectProduct(String slotId) {
+        // ...
+     }
+
+     public void insertMoney(Money money) {
+        // ...
+     }
+
+     public void cancel() {
+        // ...
+     }
+
+     public void dispense() {
+        // ...
+     }
+}
+
+interface PaymentProcessor {
+    PaymentResult processPayment(Money amount);
+    Money refund();
+}
+
+class Inventory {
+    private Map<String,Slot> slots;
+    public int getQuantity(Product product){
+                          
+    }
+    public boolean isAvailable(Product product){
+
+    }
+    public void removeProduct(String slotId) {
+        // ...
+    }
+    public void addProduct(String slotId, int quantity) {
+        // ...
+    }
+}
+
+
+
 
 
 
