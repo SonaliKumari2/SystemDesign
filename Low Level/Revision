@@ -698,6 +698,83 @@ BalanceManager.update() -> Bob owes Alice ₹300 , Charlie owes Alice ₹300
 6
 Movie Ticket Booking
 
+(a) Clarify the requirements
+-> search
+-> select that movie , select the seat
+-> then , you do the payment
+-> seat gets booked
+
+(b)
+MovieSystem -> List<Movie> movies
+Movie -> movieId , movieName 
+Cinema -> cinemaId , cinemaName , location 
+User -> userId , userName , emailId
+Payment -> UPI or cash (strategy design pattern !)
+Ticket -> ticketId , amount , movieId , Show
+Show -> showId , movie , cinema  , screen , startTime, endTime (movie & cinema connected via show)
+Screen -> screenId , List<Seat> seats
+Seat -> seatId
+ShowSeat -> Seat , status (because particular seat is booked for a show , and not for-ever)
+
+
+(c)
+Movie ---  Show  ---- Cinema
+            | --- Screen -- Seat
+            | --- ShowSeat -- Seat
+
+User --- Ticket --- Show 
+                     |_____ShowSeat
+
+(d) Booking flow
+
+User -> Select Movie -> Select Cinema -> Select Show -> Select seats A10, A11
+
+class BookingService{
+      Ticket book(User user,Show show,List<ShowSeat> seats,PaymentProcessor payment);
+}
+
+enum{
+  AVAILABLE , BOOKED , HELD (when at the payment state)
+}
+
+Concurrency
+What if Alice and Bob try to book A10 simultaneously?
+
+Answer :-
+Checking availability and changing the seat state must be an atomic operation.
+
+Payment
+interface PaymentProcessor {
+      boolean pay(BigDecimal amount);
+}
+
+PaymentProcessor <-- UPI
+                 <-- Cash
+
+BookingService -> PaymentProcessor
+
+Edge cases which needs to be handled :-
+
+-> Payment succeeds but booking fails.
+-> Ticket Generation : BookingService -> Create Ticket -> Mark ShowSeats BOOKED -> Return Ticket
+
+                   MovieSystem
+                      |
+                      ↓
+                BookingService
+                 /     |      \
+                ↓      ↓       ↓
+             Show   Payment   Ticket
+              |     Processor
+              |       △
+              |    /     \
+              |   UPI    Cash
+              |
+           ShowSeat
+              |
+             Seat
+
+
 7
 Notification System
 
