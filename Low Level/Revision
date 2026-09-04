@@ -231,6 +231,508 @@ Slot ----- Product    , Slot is associated with a Product
 2
 Parking Lot
 
+(a)
+Requirements
+
+Parking Lot -> slots , 
+slot -> whether it is occupied , which vehicle can fit into it
+Price , timings -> (upi or cash)
+
+(b)
+Main Entities :-
+
+Parking Lot -> Map<SlotId,Slot> slots; , EntryGate , ExitGate
+Slot -> slotId , boolean isAvailable(slotId) , boolean canFit(Vehicle vehicle) , 
+Floor -> floorId , List<Slot> slots;
+Payment -> interface
+PricingStrategy -> HourlyPricing , FlatPricing , WeekendPricing
+                   This demonstrates Strategy.
+Vehicle -> Car , Bike , Truck
+ParkingTicket -> Vehicle enter -> ParkingTicket -> Vehicle exits -> Calculate fee
+                 Ticket can contain : ticketId, vehicle, slot, entryTime, exitTime
+ParkingSpotAllocationStrategy -> 
+         interface SpotAllocationStrategy {
+            ParkingSlot findSlot(Vehicle vehicle);
+         }
+    Implement :- NearestSlotStrategy
+                 FirstAvailableStrategy
+                 RandomSlotStrategy 
+ParkingSlot -> NormalSlot
+               EVSlot
+
+ParkingLot ◆── 1..* Floor
+Floor ◆── 1..* ParkingSlot.   This clearly demonstrates composition + multiplicity.
+
+Concurrency
+What if two cars simultaneously try to take the last available slot?
+
+The operation of finding an available slot and marking it occupied needs to be atomic.
+Otherwise, two threads could both see the last slot as available and assign it.
+I would synchronize/lock the slot-allocation operation so that only one thread can allocate 
+a particular slot at a time.
+
+Edge cases
+
+Be ready for:
+   Parking lot full , Vehicle already parked , Vehicle exits without a valid ticket ,
+   Payment failure , No compatible slot , Invalid ticket
+
+
+interface PaymentMethod{
+    boolean pay(double amount);
+    void refund(double amount);
+}
+
+class CashPayment implements PaymentMethod{
+    @Override
+    public boolean pay(double amount){
+          //accept cash
+          return true;
+    }
+
+    @Override
+    public void refund(double amount){
+             //return cash          
+    }
+}
+
+class UPIPayment implements PaymentMethod{
+
+}
+
+(c)
+Class Diagram
+                        ParkingLot
+                            ◆
+                            │ 1..*
+                            ▼
+                          Floor
+                            ◆
+                            │ 1..*
+                            ▼
+                       ParkingSlot
+                            │
+                            │
+                         Vehicle
+                            ▲
+                    ┌───────┼───────┐
+                   Car     Bike    Truck
+  ParkingLot ──◆── EntryGate
+  ParkingLot ──◆── ExitGate
+
+  EntryGate ──→ ParkingTicket
+  ParkingTicket ──→ PricingStrategy
+                         △
+                    ┌────┴────┐
+                  Hourly     Flat
+   ExitGate ──→ PaymentProcessor
+                    △
+               ┌────┴────┐
+              UPI        Cash
+   ParkingLot ──→ SpotAllocationStrategy
+                         △
+                  ┌──────┴──────┐
+               Nearest      FirstAvailable
+
+
+3
+Library Management System
+
+(a)
+Requirements
+
+-> book should be assigned for a particular time
+-> to users -> any id card
+-> time at which book is issued , and the time at which book is returned ,
+   duration is calculated , depending  upon whether any fine is applicable , (if any damages r incurred)
+-> at the end , payment can be done in upi or cash
+-> student or faculty 
+
+Main entities and their responsibilites
+
+Library -> Map<BookId,Book>
+Book -> BookId , name , price ,  quantity , List<BookCopy> copies
+BookCopy -> copyId , status (available or issued)
+User -> UserId (registration no in college) , UserName
+Payment -> Cash or UPI 
+BorrowRecord -> recordId , user , bookCopy , issuedAt , dueAt , returnedAt , fineAmount
+fineCalculator <- Late Fine
+               <- Damage Fine
+
+
+instead of only : boolean isAvailable , consider 
+enum BookCopyStatus { AVAILABLE , ISSUED , DAMAGED ,  LOST }
+
+Concurrency :-
+two users shouldn't be able to issue the same available copy simultaneously.
+so, when the book is available and issued , then this operation can be made atomic.
+
+IMPORTANT POINT TO BE NOTED
+When a relationship has important information of its own (time, status, price, history, etc.), 
+consider creating a separate class to represent that relationship.
+
+class Library{
+     Map<BookId,Book> books;
+}
+
+class Book{
+   int BookId;
+   String name;
+   int price;
+   private List<BookCopy> copies;
+
+   public boolean hasAvailableCopy(){
+
+   }
+}
+
+issueBook() -> Find available BookCopy -> Create BorrowRecord -> Mark BookCopy = ISSUED
+
+On return:
+returnBook() -> Record returnedAt -> Calculate duration -> Calculate fine -> Payment
+-> Mark BookCopy = AVAILABLE
+
+interface PaymentProcessor{
+     void pay(int amount);
+}
+
+class CashPayment implements PaymentProcessor{
+       public void pay(int amount){
+       }
+}
+
+class CardPayment implements PaymentProcessor{
+        
+}
+
+abstract class User{
+        UserId id;
+        String name;      
+}
+
+class Student extends User{
+}
+class Faculty extends User{
+}
+
+                         ┌──────────────┐
+                         │   Library    │
+                         └──────◆───────┘
+                                │
+                                │ 1..*
+                                ▼
+                         ┌──────────────┐
+                         │     Book     │
+                         ├──────────────┤
+                         │ bookId       │
+                         │ name         │
+                         │ price        │
+                         └──────◆───────┘
+                                │
+                                │ 1..*
+                                ▼
+                         ┌──────────────┐
+                         │   BookCopy   │
+                         ├──────────────┤
+                         │ copyId       │
+                         │ status       │
+                         └──────┬───────┘
+                                │
+                                │
+                         ┌──────▼───────┐
+                         │ BorrowRecord │
+                         ├──────────────┤
+                         │ issuedAt     │
+                         │ dueAt        │
+                         │ returnedAt   │
+                         └──────┬───────┘
+                                │
+                                │
+                                ▼
+                         ┌──────────────┐
+                         │     User     │ <- student /faculty
+                         │ userId       │
+                         └──────────────┘
+
+
+              BorrowRecord ─────→ FineCalculator
+
+              PaymentProcessor
+                    △
+                 ┌──┴──┐
+                Cash  UPI
+
+4
+Elevator System
+
+(a)
+
+Conventional multi-elevator building: users press UP/DOWN on a common hall panel, 
+the elevator system selects the best elevator, that elevator arrives, and the user 
+selects the destination using the elevator's internal panel.
+
+Building has multiple floors.
+Building has multiple elevators.
+Every floor has a hall panel with : UP , DOWN
+User presses UP/DOWN → system assigns an elevator.
+Elevator arrives → doors open.
+User enters → selects destination using internal panel.
+Elevator moves between floors.
+Elevator can stop at intermediate floors.
+Elevator doors can open/close.
+Elevator can receive new requests while already moving
+Multiple users can request elevators simultaneously.
+
+(b)
+Identify the core entities
+
+ElevatorSystem : List<Elevator> , ElevatorAllocationStrategy
+Responsible for : managing elevators , receiving external requests , selecting an elevator
+                  
+Elevator : 
+Responsible for : current floor , direction , state , pending destinations , door operations
+
+class Elevator{
+        int currentFloor;
+        Direction direction;
+        ElevatorState state;
+
+        void move();
+        void addDestination(int floor);
+        void openDoor();  
+        void closeDoor();
+}
+
+HallPanel
+Responsible for capturing : Floor 5 , UP
+It shouldn't decide which elevator to use.
+
+InternalPanel
+Responsible for: User → presses 8
+It sends destination 8 to the assigned elevator.
+
+ElevatorRequest
+Represents a request such as: sourceFloor = 5 , direction = UP
+
+Elevator state
+enum ElevatorState { IDLE , MOVING , DOOR_OPEN , OUT_OF_SERVICE }
+enum Direction { UP, DOWN, IDLE }
+
+Elevator Allocation Strategy
+This is probably the most important design decision.
+
+interface ElevatorAllocationStrategy {
+          Elevator selectElevator(
+                 List<Elevator> elevators,
+                 ElevatorRequest request
+          );
+}
+
+LeastBusyElevatorStrategy , DirectionAwareStrategy , NearestElevatorStrategy
+
+Scheduling Algorithm (how an elevator processes its destinations.)
+-> SCAN Algorithm
+
+External vs Internal Requests
+
+External request
+
+class Door {
+    void open();
+    void close();
+}
+
+Elevator ◆── Door
+ElevatorSystem ◆── Elevator
+ElevatorSystem ──→ ElevatorAllocationStrategy
+
+Dependency Inversion Principle
+ElevatorSystem depends on: ElevatorAllocationStrategy , rather than a concrete NearestElevatorStrategy
+
+Concurrency
+
+Imagine only one elevator is available.
+Two users simultaneously request it.
+Both could potentially see: Elevator A = available and both try to assign it.
+
+The key concept is: CHECK → ASSIGN must not allow another thread to intervene incorrectly.
+
+Multiple Requests
+You need some form of Request Queue .
+
+Failure/edge cases
+
+Elevator unavailable -> OUT_OF_SERVICE. Don't assign new requests to it.
+No elevator available -> Request waits in queue.
+Elevator is full -> Depending on requirements, don't assign additional passengers.
+
+ User presses UP -> HallPanel creates ElevatorRequest -> ElevatorSystem receives request ->
+ ElevatorAllocationStrategy selects Elevator B -> Elevator B moves toward floor 5 ->
+ Elevator B reaches floor 5 -> Door opens -> User enters -> User presses 8 on InternalPanel ->
+ Elevator B adds destination 8 ->  Elevator moves toward 8 ->  It may serve compatible intermediate requests
+ -> Reaches floor 8 -> Door opens
+
+5
+Splitwise
+
+(a) 
+Clarify Requirements
+
+Users should be able to create groups and add expenses among group members.
+Let's assume : Equal split , Exact amount split , Percentage split
+
+Users can see their balances.
+Users can settle debts.
+Expenses can exist within a group.
+We need to validate that the split amounts add up to the expense amount.
+
+Users can create expenses, split them using different strategies, track balances, 
+view who owes whom, and settle debts.
+
+(b) 
+Identify the core entities
+
+User
+Expense
+Split
+Group
+Balance
+SplitStrategy <- EqualSplit , ExactSplit , PercentageSplit
+
+
+User
+class User {
+    private String userId;
+    private String name;
+    private String email;
+}
+
+Expense
+class Expense {
+     private String expenseId;
+     private User paidBy;
+     private BigDecimal amount;
+     private List<Split> splits;
+     private String description;
+}
+
+Split
+class Split {
+      private User user;
+      private BigDecimal amount;
+}
+
+Expense
+   |
+   ├── Split → Alice → ₹300
+   ├── Split → Bob   → ₹300
+   └── Split → Charlie → ₹300
+
+SplitStrategy
+This is the strategy pattern.
+
+interface SplitStrategy{
+       List<Split> calculateSplits(
+           BigDecimal totalAmount,
+           User paidBy,
+           List<SplitInput> inputs
+       );
+}
+
+Balance Tracking
+
+class BalanceManager{
+      private Map<User, Map<User, BigDecimal>> balances;
+      void addExpense(Expense expense);
+      void settle(User from, User to, BigDecimal amount);
+      BigDecimal getBalance(User from, User to);  
+}
+
+Group
+class Group {
+       private String groupId;
+       private String name;
+       private List<User> members;
+       private List<Expense> expenses;       
+}
+
+SplitwiseService
+I don't want User, Expense, and Group coordinating everything themselves.
+
+class SplitwiseService {
+         private Map<String, User> users;
+         private Map<String, Group> groups;
+         private BalanceManager balanceManager;
+
+         void addExpense(...);
+         void addUserToGroup(...);
+         void settleExpense(...);
+
+         Map<User, BigDecimal> getBalances(User user);
+}
+
+Expense ◆── 1..* Split
+Split ─── User because a split refers to a user.
+Group ◆── Expense
+Group ─── User
+
+Concurrency
+What happens if two users add expenses simultaneoulsy ?
+
+
+
+Edge cases
+-> Expense amount must be positive.
+-> Exact split amounts must equal total expense.
+-> Percentage splits must total 100%.
+-> User must belong to the group.
+-> Cannot settle more than the outstanding debt.
+-> Cannot add duplicate group members.
+-> A user cannot split an expense with someone outside the allowed participants.
+-> Handle money using BigDecimal/a money abstraction rather than double.
+
+Alice -> SplitwiseService.addExpense() -> EqualSplit.calculateSplits() -> Expense created ->
+BalanceManager.update() -> Bob owes Alice ₹300 , Charlie owes Alice ₹300
+
+
+6
+Movie Ticket Booking
+
+7
+Notification System
+
+8
+Chess
+
+
+
+
+          
+         
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
 
 
 
