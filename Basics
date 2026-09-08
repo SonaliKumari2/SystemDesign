@@ -180,6 +180,12 @@ data in a shared session store (e.g, Redis or a database), allowing any backend 
 request.
 
 
+16)
+What is cache invalidation?
+Cache invalidation is the process of removing or updating stale data in the cache when the 
+underlying data changes.
+
+17)
 
 
 
