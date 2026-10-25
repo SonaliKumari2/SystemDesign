@@ -81,7 +81,7 @@ Merchant/Clients -> business who have integrated us (amazon , flipkart)
 Transaction -> the actual payment
 PaymentMethod -> visa card , upi , master card
 Customer/Users -> users of merchant/clients
-WebhoookEvent -> result : success or failure
+WebhookEvent -> result : success or failure
 PaymentSession 
 
 3
@@ -100,14 +100,217 @@ API Designing
 4
 High Level Designing
 
+users -> client/merchant -> api gateway & load balancer -> PaymentIntentService -> PaymentIntentDB
+                                                        -> PaymentSessionService (returns a checkout webpage)
+                                                        -> PaymentProcessorService  -> <external> Processor Service
+
+api gateway & load balancer :- because we have microservice architecture.
+
+PaymentIntentService creates and manages the record representing the payment that the merchant
+wants to collect.
+
+PaymentSessionService creates and manages the checkout session through which the customer interacts
+with the payment system.
+After Flipkart initiates the payment , the customer needs an interface to select a payment method,
+such as UPI , a debit card , or net banking.
+PaymentSessionService helps create that checkout experience.
+
+Its responsibilities may include :-
+   -> creates a checkout session
+   -> links the session to the payment intent
+   -> sets session expiry
+   -> returns checkout information
+   -> manages session validity :- ensures expired or invalid sessions cannot be used to initiate payments.
+
+5
+Deep Dive Designing
+
+(i)
+PaymentIntentDB (as here consistency is more important using MySQL or Postgres ) :-
+- payment_intent_id (auto generated id)
+- amount
+- currency
+- merchant
+- customer
+- order_id
+- payment_method_type .... metadata
+and we will simply return payment_intent_id to PaymentIntentSvc
+
+(ii)
+CheckoutSession -> Redis
+
+Response by Checkout Session {
+   "session_id" : "sess_f32jksd9f232" ,
+   "redirect_url" : "https://pay.gateway.com/checkout/sess_f32jksd9f232"
+   "metadata" :   -> it helps in identifying whether our session has expired or not.
+}
+
+here , all the Checkout Session information will be stored in Redis.
+Why to store in Redis ?
+to make sure that the latency is minimized
+
+after that , the CheckoutSession will create a session id , and will sent the url ,
+the session id is also sent in the parameter to the user browser.
+so , that the user browser backend can validate it with the sessionID stored in the redis.
 
 
-  
+(iii)
+checkout front-end service
+we also have checkout front-end service.
 
-        
+it is responsible for hosting the validated url webpage received.
 
-             
 
+
+users -> client/merchant -> api gateway & load balancer -> PaymentIntentService -> PaymentIntentDB
+                |                                       -> PaymentSessionService (returns a checkout webpage)      -> Redis                 <-| 
+                |                                        -> PaymentProcessorService  -> <external> Processor Service / CheckoutBackendService | ---> PCI Zone
+                |                                                                                                                 |               |-----------------------------------> Payment Transaction DB  <---- Reconciliation Service
+                | ------ Load Balancer --------------------> Checkout Frontend Service                                            |----> Orchestrator --> Merchant Preference DB
+                                                                 (return the html/js file)                                                 |   |
+                                                                                                                                           |   |--> RazorPayConnectorSvc    }
+                                                                                                                                           |   |--> PayUConnectorService    } -----------------> Processor Gateway
+                                                                                                                                           |   |--> FiservConnectorService  }                         |
+                                                                                                                                           |                                                          |
+                                                                                                                                           |-----> Kafka <--- Collector Callback Service   <---------------------|      
+                                                                                                                                                      ^
+                                                                                                                                                      |              
+                                                                                                                                                  Reconciliation Service            
+
+as , we want to make our system  scalable , and as it will handle 10K requests per second , 
+we need to make our checkout Frontend Service scalable by adding load balancer component.
+
+why does the checkout frontend service have a load balancer but no API gateway ?
+we need to display only a webpage , and it has a single server with multiple replication
+
+(iii)
+CheckoutBackendService
+-> validate the checkout session
+   when the customer opens a checkout link , CheckoutBackendService checks whether the session is valid.
+
+-> Retrieve checkout information
+   It fetches the information needed to display the checkout page.
+   (for example :-) amount :- Rs 2,000  , currency : INR , Available Payment methods : UPI , cards , net banking
+
+-> Handle customer actions
+   when the customer selects UPI and clicks Pay , the frontend sends a request to the backend.
+
+   CheckoutBackendService can :-
+          validate the request
+          check that the payment session is still valid.
+          forward the payment request to the appropriate payment API or service.
+
+-> Returns the response to the backend
+   It returns the relevant result to the checkout webpage.
+   (for example :-) payment initiated successfully , additional authentication is required ,
+                    payment failed.
+
+       the frontend uses this response to update what the customer sees.
+
+To maintain the security , 
+the client/merchant does not have any access to the sensitive information like credit card.
+
+checkout backend service responsibilities in concise manner :-
+-> session exists
+-> not expired (the timer is set for the REDIS cache)
+-> intent valid
+-> merchant matched
+-> session state is ACTIVE
+
+for the validation , the request will go through many services , one of the request will
+go to Redis , which will help in identifying whether the session is valid and whether
+the session is expired or not.
+
+ttl is a session of 10 minutes.
+
+As the checkout backend service will receive all the sensitive information , 
+but we can't transfer that sesntive information to any other component. So, this will go
+to Tokenization Service. so, after validating the request , we will tokenize the sensitive
+information.
+
+PCI Zone
+The response of this component is encrypted_card_token .
+ Tokenization Service  -------> HSM
+                       -------> Card Voult DB
+
+   i) validate request -> to make sure that the card number is valid.
+  ii) generate card fingerprint -> Hash of (BIN + last 4 + expiry + maybe name )
+ iii) Encrypt card fingerprint using HSM (Hardware Security Module)
+
+BIN number is in credit card, total 16 digits , first 6 digits is BIN number
+(bank identification number) , like to which bank it belongs to.
+
+Here , Hardware Security Module is used.
+It stores the protected key , here we don't use any public key or private key and store it
+in cloud , because key can get stolen , so to avoid that , we specifically use Hardware
+Security Module.
+
+And one more important thing , this request is not a HTTP Request.
+It is a TLS request.
+
+Now , after the encrypted_card_token is sent to checkout backend service , then the
+request is made for orchestrator service. 
+
+
+Checkout Backend Service also handles the Orchestrator Service
+Orchestrator Service , first of all , identifies which processor is chosen by the merchant ,
+whether it is RazorPay or PayU .
+so , we have one more database called merchant preference database.
+
+MerchantPreferenceDatabase identifies exactly which database the merchant prefers.
+and accordingly it decides whether to call RazorPayConnectorSvc , PayUConnectorService or
+FiservConnectorService.
+
+And, then Processor Gateway will talk to the bank for all other transaction details.
+
+Collector Callback Service is used to receive all the responses from the processor gateway
+because it's the external service , and it's not necessary that we will get the result out of this
+in 0th second.
+Orchestrator Service has main database called Payment Transaction DB , and it stores the status of
+all the trasaction which has happened throughout our gateway service. (rdbms database)
+
+schema of Payment Transaction DB :-
+         -> txn_id , intent_id , status(sent,DONE) , 
+         -> amount , currency , merchant_id
+         -> payment_method = CARD
+         -> card_token = tok_124
+           ..... metadata
+
+the status which is stored in Collector Callback Service , this will be used to update the
+Payment Transaction DB in Orchestrator Service.
+
+It is the responsibility of the Orchestrator service to update the Payment Transaction DB consistently.
+
+now , how we are going to sent this status DONE which is ack to the checkout front-end service ?
+
+so , checkout frontend service keeps polling checkout backend service to know the status for a 
+particular transaction id , and checkout backend service keeps tracking the PaymentTransaction DB.
+
+What if payment fails ?
+for that we have reconciliation job , which will run after one day or two days , 
+which will actually tally this transaction request with the response that is sent by the processor,
+And based on that tally , we have to confirm that client that the particular transaction was
+successfully done in the backend.
+
+Orchestrator service and Collector Callback Service is connected via event-driven architecture.
+And Collector callback service store all the status to kafka broker , and kafka has few
+topics -> payment.processor.callback.status , payment.processor.status (T+1)
+and orchestrator service will read from kafka.
+This is PubSub design pattern.
+
+Now , after day or so , when the final confirmation is done with the bank , the processor
+service will again send an acknowledgement of each and every transaction to this collector
+payment service and it will send it to another topic called as the payment processor status ,
+which have the data of one day delay means it is not the immediate data , but the data which
+comes after one day and these status have the final confirmation that whether the
+payment was successful or not.
+
+Now , we have to do the final reconciliation.
+So, we have reconcile service which will talk to this Kafka broker and will update the database
+that we have over Payment Transaction DB into some different tables.
+Rather it will have a seperate ledger table which will have final information of
+the payment who have done the payment , what is the timestamp on which the payment was done and 
+all this information will be there on the last table of this entire ecosystem.
 
 
 
@@ -123,7 +326,9 @@ Questions :-
 
 -> difference between razorpay , phonepe . 
 
+-> do you know why 
 
+-> what exactly does cisco do ?
 
 
 
