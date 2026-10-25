@@ -1,0 +1,134 @@
+system design of payment gateway
+Payment gateway
+(for example :-) Razorpay , Stripe , PayU
+
+Design payment gateway
+An online platform that securely captures user payment details and orchestrates transactions between
+merchants and financial processors.
+
+merchant -> amazon , flipkart , any shop 
+payment gateway , payment processor -> stripe
+
+stripe as payment gateway : securely collects payment details and routes payment requests.
+stripe as a payment processor : facilitates transactions between merchants and the relevant banking
+                                and payment networks.
+
+payment gateway :-
+a payment gateway is the platform that collects payment details from users , secures and
+tokenizes them , orchestrates the transaction flow , and communiates with the payment
+processor.
+gateway = "traffic controller of payments"
+
+orchestration -> coordinating all the components involved in completing a payment.
+
+payment processor :-
+a payment processor is the financial network entity that actually talks to banks and 
+card networks to authorize , capture , and settle the money.
+processor = "the system that actually moves the money"
+
+
+1
+gathering of the functional requirements
+
+-> payment intent creation :
+   create a payment request containing the order amount and other relevant details.
+   
+-> checkout session creation
+   generate a temporary , secure checkout session for the user.
+
+-> secure card handling
+   protect sensitive card information using tokenization and appropriate security controls
+
+-> payment status tracking
+   inform the merchant whether a payment succeeded or failed.
+
+the payment card industry data security standard (PCI DSS) is the global security
+standard for all entities that sotre , process or transmit cardholder data and/or
+sensitive authentication data.
+
+  
+4 requirements :-
+-> client should be able to initiate payment requests
+-> gateway creates a temporary session for the user to enter card details
+-> secure PCI-DSS compliance for card data handling
+-> transaction status tracking
+
+out of the scope :- Partial payments , returns and refunds
+
+non-functional requirements :-
+-> scale :- 10k TPS (transactions per second)
+-> CAP : availability << consistency (strong consistency for payment transactions)
+-> latency < 200ms response time for payment authorization
+-> security : end-to-end encryption , PCI-DSS Level 1 compliance
+
+(for example :-) 
+buying a phone on flipkart
+
+component                             example                                 role
+
+merchant                               flipkart                              sells the phone
+payment gateway ,payment processor    razorpay                                coordinates the payment
+payment method                           upi                                  the method used to pay
+upi app                               phonepe                               the app you use to initiate and authorize the paymen
+upi infrastructure                  NPCI's UPI system                        facilitates the transaction between particating banks
+banks                         ur bank's and flipkart receiving bank           process the transfer 
+
+
+2
+Core Entity
+
+Merchant/Clients -> business who have integrated us (amazon , flipkart)
+Transaction -> the actual payment
+PaymentMethod -> visa card , upi , master card
+Customer/Users -> users of merchant/clients
+WebhoookEvent -> result : success or failure
+PaymentSession 
+
+3
+API Designing
+
+     client --------------------> payment gateway 
+             1. Payment Intent
+             2. Session Management
+             3. Pay 
+
+        -> POST /v1/payment-intents    :- payment intent
+        -> POST /v1/payment-sessions    :- session management
+        -> POST /v1/checkout/pay        :- pay
+        -> GET /v1/payments/{payment_id} :- to track the status of payment_id
+
+4
+High Level Designing
+
+
+
+  
+
+        
+
+             
+
+
+
+
+
+Questions :-
+-> why foreign don't have systems like upi ?
+
+-> documentation of stripe reading
+
+-> asking questions on linkedin to the people who are working in any payment related company
+
+-> mentioning famous person (#phonepe)
+
+-> difference between razorpay , phonepe . 
+
+
+
+
+
+
+
+
+
+
