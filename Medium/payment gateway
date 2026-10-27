@@ -313,7 +313,47 @@ the payment who have done the payment , what is the timestamp on which the payme
 all this information will be there on the last table of this entire ecosystem.
 
 
+Real life example of CAS , Reconciliation and Idempoteny Key
 
+Suppose you buy a Rs 1,000 T-shirt on amazon and accidentally click Pay twice.
+
+i) CAS (Compare and Swap) - Prevents concurrent requests
+   Both request try to change the payment status from NEW to AUTHORIZING.
+   Only one succeeds; the other fails because the status has already changed.
+   Only the winning request proceeds to initiate authorization.
+
+ii) Authorization - Bank approves the payment (here available bank decreases)
+    Amazon sends an authorization request through its payment processor. 
+    Your bank checks the transaction and approves Rs1,000 generally reserving the funds.
+    Once Amazon receives reliable confirmation , the status changed to AUTHROIZED.
+
+iii) Idempotency - Make Retries safe
+     Suppose the bank approves the payment but Amazon deosn't receive the response because of a network timeout.
+     Amazon retries using the same idempotency key.
+     The payment processor recognizes the same operation and avoids creating a duplicate authorization,
+     assuming it correctly supports idempotency.
+
+iv) Reconciliation - finds out what actually happened
+    If amazon still doesn't know the payement's outcome , it checks the payment processor's transaction records.
+    If authorization succeeded , Amazon updates the status to AUTHORIZED.
+    If it failed , Amazon records the failure. If the outcome remains uncertain , it continus recovery
+    instead of blindly retrying.
+
+    So, during reconciliation , Amazon accesses
+    payment database :- finds unresolved payments :- (for example :-) P101 stuck in AUTHORIZING
+    Payment Processor's API :- Checks whether the Rs 1,000 authorization was approved or declined.
+    Transaction identifiers :- mathces records using payment ID , transaction ID , amount and currency.
+
+    After reconciliation , if approved -> update status to AUTHORIZED.
+                           if declined -> update the payment status accordingly
+                           if the outcome remains unknown -> keep it unresolved and continue recovery
+
+v) Capture and settlement - collects and transfer the money.
+   After authorization , amazon(merchant) initiaites capture.
+   The transaction proceeds through settlement , through which funds move towards the merchant
+   according to the payment arrangement.
+
+....settlement happens later.
 
 Questions :-
 -> why foreign don't have systems like upi ?
