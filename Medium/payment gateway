@@ -355,6 +355,49 @@ v) Capture and settlement - collects and transfer the money.
 
 ....settlement happens later.
 
+How to handle scalibility ? 10K Transactions Per Second
+
+We can handle the scaliblity , so one of the method is , database sharding . Here , divide the
+Payments database into multiple shards using payment_id as the sharding key.
+
+we are not using merchant_id for sharding because a large merchant like Amazon can generate millions
+of payments . If we shard by merchant_id , all its payments may land on the same shart , createing
+a bottleneck and creating hot shard.
+
+Since we also need to retrive payment records for a particular merchant_id , we can maintain a
+separate database or read-optimized data store indexed by merchant_id to efficiently fetch all
+payments associated with that merchant.
+
+When do we use leader-follower async replication ?
+
+Leader :- Handles writes , such as creating payment records and updating payment statuses.
+Followers :- Replicate data from the learder asynchronously and can serve read queries.
+
+Use case :- When we have a high volume of payment-status lookups , transaction-history queries , or
+            merchant-dashboard requests , followers can handle reads and reduce the leader's workload.
+And asyncrhonous replication can cause data loss.
+There is a replication lag between when the leader commits a write and when the followers receive it.
+
+so, for merchant-dashboard requests , we can prioritize availability over strong consistency ,
+because temporary state data is usually acceptable.
+
+(for example :-)
+suppose a customer pays Rs 1,000 for a t-shirt.
+the leader database updates the payment status to CAPTURED .
+The folloewr hasn't received the update yet because of asynchrnous replication.
+the merchant dashboard queries the follower and temporarily sees AUTHORIZED instead of CAPUTURED.
+
+The dashboard can still display the available data rather than failing the request.
+
+Why is this accpetable ?
+because of eventual consistency :- the follower eventually recieves the update and displays
+                                   CAPTURED.
+scalibility :- Multiple followers can distribute read traffic , reducing the leader's workload.
+
+Raft 
+
+
+
 Questions :-
 -> why foreign don't have systems like upi ?
 
@@ -370,8 +413,7 @@ Questions :-
 
 -> what exactly does cisco do ?
 
-
-
+-> exactly , the things to know about kafka 
 
 
 
